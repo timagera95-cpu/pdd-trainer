@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Тренажёр ПДД</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="questions.js"></script>
+<script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+<style>
+:root{
+  --bg:var(--tg-theme-bg-color,#ffffff);
+  --text:var(--tg-theme-text-color,#1a1a1a);
+  --hint:var(--tg-theme-hint-color,#8a8f98);
+  --btn:var(--tg-theme-button-color,#2f80ed);
+  --btn-text:var(--tg-theme-button-text-color,#ffffff);
+  --card:var(--tg-theme-secondary-bg-color,#f2f4f7);
+  --ok:#2e9e5b; --bad:#d64545;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 -apple-system,system-ui,"Segoe UI",Roboto,Arial,sans-serif}
+#app{max-width:560px;margin:0 auto;padding:16px 16px 60px}
+h1{font-size:22px;margin:4px 0 14px}
+.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px}
+.btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:16px;font-weight:600;background:var(--btn);color:var(--btn-text);margin-bottom:10px;cursor:pointer}
+.btn.sec{background:var(--card);color:var(--text)}
+.back{border:0;background:var(--card);color:var(--text);border-radius:10px;padding:6px 12px;font-size:16px;margin-bottom:10px;cursor:pointer}
+.bar{height:8px;background:rgba(127,127,127,.2);border-radius:4px;overflow:hidden;margin-top:8px}
+.bar>div{height:100%;background:var(--ok)}
+.hint{color:var(--hint);font-size:14px}
+.center{text-align:center}
+.lang{display:flex;gap:6px;justify-content:flex-end}
+.lang button{border:0;padding:6px 10px;border-radius:8px;background:var(--card);color:var(--text);font-weight:600;cursor:pointer}
+.lang button.on{background:var(--btn);color:var(--btn-text)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tk{padding:16px 0;border-radius:12px;border:0;background:var(--card);color:var(--text);font-size:17px;font-weight:700;cursor:pointer}
+.tk.done{background:var(--ok);color:#fff}.tk.err{background:var(--bad);color:#fff}
+.img{display:flex;justify-content:center;margin-bottom:12px}.img svg{width:130px;height:130px}
+.img svg.scene{width:100%;max-width:340px;height:auto;border-radius:12px}
+.q{font-size:17px;font-weight:600;margin-bottom:12px}
+.opt{display:block;width:100%;text-align:left;border:2px solid transparent;background:var(--card);color:var(--text);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:15px;cursor:pointer}
+.opt.ok{border-color:var(--ok);background:rgba(46,158,91,.15)}
+.opt.bad{border-color:var(--bad);background:rgba(214,69,69,.15)}
+.explain{border-left:4px solid var(--btn);padding:10px 12px;background:var(--card);border-radius:8px;margin:8px 0 12px;font-size:15px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:14px;color:var(--hint)}
+#timer{font-weight:700;color:var(--text)}
+.dots{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px}
+.dots span{width:20px;height:6px;border-radius:3px;background:rgba(127,127,127,.25)}
+.dots .ok{background:var(--ok)}.dots .bad{background:var(--bad)}.dots .cur{background:var(--btn)}
+.big{font-size:44px;text-align:center;margin:8px 0}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9}
+.modal .box{background:var(--bg);color:var(--text);border-radius:16px;padding:20px;width:85%;max-width:360px;text-align:center}
+.wrong{font-size:14px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ================== НАСТРОЙКИ ==================
+const CONFIG = {
+  examCount: 20,        // вопросов в экзамене
+  examMinutes: 25,      // время на экзамен
+  maxErrors: 2,         // допустимо ошибок
+  freeExamsPerDay: 3,   // бесплатных экзаменов в день, дальше — за rewarded-рекламу
+  botLink: "https://t.me/YHQbilet_bot/test", // ссылка на ваш мини-апп (для кнопки «Поделиться»)
+  adsDemo: false,       // true — заглушка вместо рекламы; false — реальная реклама Adsgram
+  adsgramInterstitialId: "int-58096", // blockId межстраничной рекламы
+  adsgramRewardedId: "58095"      // blockId rewarded-рекламы
+};
+
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+const inTg = !!(tg && tg.initData);
+if (tg) { tg.ready(); tg.expand(); }
+
+// ================== ВОПРОСЫ ==================
+// Вопросы — в questions.js. Варианты ответа перемешиваются детерминированно (одинаково у всех),
+// чтобы правильный ответ стоял на разных местах. Билеты собираются случайно — см. makeTicket().
+function seeded(n){ let x = (n * 2654435761) % 4294967296; return () => { x = (x * 1664525 + 1013904223) % 4294967296; return x / 4294967296; }; }
+function seededShuffle(arr, rnd){ const a = arr.slice(); for (let i = a.length-1; i > 0; i--) { const j = Math.floor(rnd()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
+QUESTIONS.forEach(q => {                       // перемешать варианты ответа
+  const perm = seededShuffle(q.o.ru.map((_, i) => i), seeded(q.id + 7));
+  q.o = { ru: perm.map(i => q.o.ru[i]), uz: perm.map(i => q.o.uz[i]) };
+  q.c = perm.indexOf(q.c);
+});
+
+// ================== СЛУЧАЙНЫЙ БИЛЕТ ==================
+// Состав билета как на экзамене: смесь тем по квотам. В билет чаще попадают нерешённые и ошибочные вопросы,
+// реже — решённые верно и недавно показанные. Почти одинаковые вопросы (один и тот же пункт правил) в один билет не попадают.
+const TOPIC = q => q.rule.startsWith("ситуация") ? "sit" : /^знак/.test(q.rule) ? "sign" : q.rule.startsWith("разметка") ? "mark" : q.rule === "первая помощь" ? "aid" : "rules";
+const QUOTA = { sit: 5, sign: 4, mark: 2, aid: 1, rules: 8 };
+function makeTicket(n){
+  const recent = new Set(S.recent || []);
+  const weight = q => ({ "0": 3, "2": 4, "1": 1 })[status(q.id)] * (recent.has(q.id) ? 0.15 : 1);
+  const picked = [], groups = new Set();
+  const groupOf = q => TOPIC(q) === "sit" ? "id" + q.id : q.rule;
+  const take = (pool, k) => {
+    pool = pool.filter(q => !picked.includes(q.id) && !groups.has(groupOf(q)));
+    for (let i = 0; i < k && pool.length; i++) {
+      const total = pool.reduce((s, q) => s + weight(q), 0);
+      let r = Math.random() * total, j = 0;
+      while (j < pool.length - 1 && (r -= weight(pool[j])) > 0) j++;
+      const q = pool[j]; picked.push(q.id); groups.add(groupOf(q));
+      pool = pool.filter(x => x !== q && groupOf(x) !== groupOf(q));
+    }
+  };
+  const scale = n / 20;
+  Object.entries(QUOTA).forEach(([tp, k]) => take(QUESTIONS.filter(q => TOPIC(q) === tp), Math.round(k * scale)));
+  if (picked.length < n) take(QUESTIONS, n - picked.length);   // добрать, если какой-то темы мало
+  return shuffle(picked).slice(0, n);
+}
+
+// ================== ТЕКСТЫ ИНТЕРФЕЙСА ==================
+const T = {
+ ru:{title:"Тренажёр ПДД",progress:"Решено верно",exam:"Экзамен",tickets:"Случайный билет",newTicket:"Новый билет",mistakes:"Мои ошибки",
+     noMistakes:"Ошибок нет — отлично! 👍",ticket:"Билет",question:"Вопрос",next:"Далее",finish:"Завершить",
+     passed:"Экзамен сдан!",failed:"Экзамен не сдан",errors:"Ошибок",timeout:"Время вышло",home:"На главную",
+     share:"Поделиться результатом",retry:"Пройти ещё раз",result:"Результат",
+     examInfo:(n,m,e)=>`${n} вопросов · ${m} мин · до ${e} ошибок`,
+     limit:"Бесплатные экзамены на сегодня закончились. Посмотрите рекламу, чтобы пройти ещё один.",
+     watch:"Смотреть рекламу",cancel:"Отмена",adDemo:"Здесь будет реклама",correct:"Верно",wrong:"Неверно",
+     shareText:(c,n)=>`Я сдал пробный экзамен ПДД: ${c} из ${n}! Попробуй и ты 👇`,
+     exitExam:"Выйти из экзамена? Результат не сохранится.",mistakesHint:"Правильный ответ убирает вопрос из списка",
+     review:"Разбор ошибок",right:"Правильно",
+     ruleLabel:"ПДД РУз",explainAd:"Объяснение — за просмотр рекламы",adFail:"Реклама закрыта раньше времени — досмотрите до конца, чтобы открыть объяснение"},
+ uz:{title:"YHQ trenajyori",progress:"To'g'ri yechildi",exam:"Imtihon",tickets:"Tasodifiy bilet",newTicket:"Yangi bilet",mistakes:"Xatolarim",
+     noMistakes:"Xatolar yo'q — a'lo! 👍",ticket:"Bilet",question:"Savol",next:"Keyingi",finish:"Yakunlash",
+     passed:"Imtihondan o'tdingiz!",failed:"Imtihondan o'tmadingiz",errors:"Xatolar",timeout:"Vaqt tugadi",home:"Bosh sahifa",
+     share:"Natijani ulashish",retry:"Qayta topshirish",result:"Natija",
+     examInfo:(n,m,e)=>`${n} ta savol · ${m} daqiqa · ${e} tagacha xato`,
+     limit:"Bugungi bepul imtihonlar tugadi. Yana bittasini topshirish uchun reklamani ko'ring.",
+     watch:"Reklamani ko'rish",cancel:"Bekor qilish",adDemo:"Bu yerda reklama bo'ladi",correct:"To'g'ri",wrong:"Noto'g'ri",
+     shareText:(c,n)=>`Men YHQ bo'yicha sinov imtihonidan o'tdim: ${c}/${n}! Sen ham sinab ko'r 👇`,
+     exitExam:"Imtihondan chiqasizmi? Natija saqlanmaydi.",mistakesHint:"To'g'ri javob savolni ro'yxatdan olib tashlaydi",
+     review:"Xatolar tahlili",right:"To'g'ri javob",
+     ruleLabel:"O'zR YHQ",explainAd:"Izoh — reklama ko'rish evaziga",adFail:"Reklama oxirigacha ko'rilmadi — izohni ochish uchun oxirigacha ko'ring"}
+};
+
+// ================== СОХРАНЕНИЕ ==================
+// st — строка статусов по порядку вопросов: 0 — не решён, 1 — верно, 2 — ошибка.
+// Компактно: 800 вопросов = 800 символов (лимит CloudStorage — 4096 на ключ).
+const KEY = "pdd_v2";
+const userLang = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.language_code : "";
+let S = { lang: userLang === "uz" ? "uz" : "ru", st: "", day: "", examsToday: 0, recent: [] };
+const hasCloud = () => inTg && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast("6.9");
+function localGet(){ try { return localStorage.getItem(KEY); } catch(e){ return null; } }
+function save(){
+  const v = JSON.stringify(S);
+  if (hasCloud()) tg.CloudStorage.setItem(KEY, v, () => {});
+  try { localStorage.setItem(KEY, v); } catch(e){}
+}
+function load(cb){
+  const apply = v => { if (v) { try { Object.assign(S, JSON.parse(v)); } catch(e){} } cb(); };
+  if (hasCloud()) tg.CloudStorage.getItem(KEY, (err, v) => apply(err || !v ? localGet() : v));
+  else apply(localGet());
+}
+const idx = id => QUESTIONS.findIndex(q => q.id === id);
+const status = id => S.st[idx(id)] || "0";
+function setStatus(id, v){
+  const i = idx(id); let s = S.st.padEnd(QUESTIONS.length, "0").split(""); s[i] = v; S.st = s.join("");
+}
+const count = v => QUESTIONS.filter(q => status(q.id) === v).length;
+const today = () => { const d = new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); };
+
+// ================== РЕКЛАМА ==================
+const Ads = {
+  interstitial(){ return this._show(CONFIG.adsgramInterstitialId, false); },
+  rewarded(){ return this._show(CONFIG.adsgramRewardedId, true); },
+  _ctrl: {},
+  _show(blockId, rewarded){
+    if (!CONFIG.adsDemo) {
+      // Реклама не загрузилась (нет SDK, нет показа) — не наказываем пользователя: награда выдаётся.
+      if (!window.Adsgram || !blockId) return Promise.resolve(true);
+      try {
+        const c = this._ctrl[blockId] || (this._ctrl[blockId] = window.Adsgram.init({ blockId }));
+        // resolve — досмотрел (или пропустил interstitial). reject — закрыл раньше или ошибка показа.
+        // Награда не выдаётся, только если пользователь сам закрыл rewarded-рекламу; при ошибке/отсутствии рекламы — выдаётся.
+        return c.show().then(() => true).catch(r => !rewarded || !!(r && r.error));
+      } catch (e) { return Promise.resolve(true); }
+    }
+    return new Promise(res => {               // демо-заглушка на 3 секунды
+      const m = document.createElement("div"); m.className = "modal"; let sec = 3;
+      m.innerHTML = `<div class="box"><div class="big">📺</div><div>${t().adDemo}</div><div class="hint" id="adc">${sec}</div></div>`;
+      document.body.appendChild(m);
+      const iv = setInterval(() => { sec--; if (sec <= 0) { clearInterval(iv); m.remove(); res(true); } else m.querySelector("#adc").textContent = sec; }, 1000);
+    });
+  }
+};
+
+// ================== НАВИГАЦИЯ ==================
+const app = document.getElementById("app");
+const t = () => T[S.lang];
+let session = null, timerId = null, backHandler = null;
+
+function setBack(fn){
+  if (inTg) {
+    if (backHandler) tg.BackButton.offClick(backHandler);
+    if (fn) { tg.BackButton.onClick(fn); tg.BackButton.show(); } else tg.BackButton.hide();
+  }
+  backHandler = fn;
+}
+const backBtn = () => inTg ? "" : `<button class="back" onclick="backHandler&&backHandler()">←</button>`;
+function haptic(ok){ if (inTg && tg.isVersionAtLeast("6.1")) tg.HapticFeedback.notificationOccurred(ok ? "success" : "error"); }
+function stopTimer(){ if (timerId) { clearInterval(timerId); timerId = null; } }
+function shuffle(a){ a = a.slice(); for (let i = a.length-1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
+
+function setLang(l){ S.lang = l; save(); home(); }
+
+function home(){
+  stopTimer(); session = null; setBack(null);
+  const n = QUESTIONS.length, ok = count("1"), mist = count("2");
+  app.innerHTML = `
+    <div class="lang">${["uz","ru"].map(l => `<button class="${S.lang===l?"on":""}" onclick="setLang('${l}')">${l==="uz"?"O'zbek":"Рус"}</button>`).join("")}</div>
+    <h1>🚗 ${t().title}</h1>
+    <div class="card">${t().progress}: <b>${Math.floor(ok/n*100)}%</b><div class="bar"><div style="width:${ok/n*100}%"></div></div></div>
+    <button class="btn" onclick="startExam()">🎯 ${t().exam}</button>
+    <div class="hint center" style="margin:-4px 0 14px">${t().examInfo(Math.min(CONFIG.examCount,n), CONFIG.examMinutes, CONFIG.maxErrors)}</div>
+    <button class="btn sec" onclick="startTicket()">📋 ${t().tickets}</button>
+    <button class="btn sec" onclick="startMistakes()">❗ ${t().mistakes}${mist ? ` (${mist})` : ""}</button>`;
+}
+
+// ================== СЕССИИ ==================
+function startQuiz(mode, ids, title){
+  session = { mode, ids, idx: 0, res: [], title, errors: 0, timeout: false };
+  if (mode === "exam") { session.end = Date.now() + CONFIG.examMinutes*60000; timerId = setInterval(tick, 1000); }
+  setBack(mode === "exam" ? confirmExit : home);
+  renderQ();
+}
+function startTicket(){ startQuiz("ticket", makeTicket(CONFIG.examCount), t().ticket); }
+function startMistakes(){
+  const ids = QUESTIONS.filter(q => status(q.id) === "2").map(q => q.id);
+  if (!ids.length) {
+    setBack(home);
+    app.innerHTML = `${backBtn()}<h1>${t().mistakes}</h1><div class="card center">${t().noMistakes}</div><button class="btn" onclick="home()">${t().home}</button>`;
+    return;
+  }
+  startQuiz("mistakes", ids, t().mistakes);
+}
+function startExam(){
+  if (S.day !== today()) { S.day = today(); S.examsToday = 0; }
+  const begin = () => {
+    S.examsToday++; save();
+    startQuiz("exam", makeTicket(CONFIG.examCount), t().exam);
+  };
+  if (S.examsToday < CONFIG.freeExamsPerDay) return begin();
+  const m = document.createElement("div"); m.className = "modal";
+  m.innerHTML = `<div class="box"><div class="big">🎬</div><p>${t().limit}</p>
+    <button class="btn" id="w">${t().watch}</button><button class="btn sec" id="c">${t().cancel}</button></div>`;
+  document.body.appendChild(m);
+  m.querySelector("#c").onclick = () => m.remove();
+  m.querySelector("#w").onclick = () => { m.remove(); Ads.rewarded().then(ok => { if (ok) begin(); }); };
+}
+function confirmExit(){
+  if (inTg) tg.showConfirm(t().exitExam, ok => { if (ok) home(); });
+  else if (confirm(t().exitExam)) home();
+}
+function tick(){
+  if (!session || !session.end) return;
+  const left = Math.max(0, session.end - Date.now());
+  const el = document.getElementById("timer");
+  if (el) el.textContent = "⏱ " + Math.floor(left/60000) + ":" + String(Math.floor(left/1000)%60).padStart(2, "0");
+  if (left <= 0) { session.timeout = true; finish(); }
+}
+
+// ================== ВОПРОС ==================
+function renderQ(){
+  const s = session, q = QUESTIONS[idx(s.ids[s.idx])], L = S.lang;
+  app.innerHTML = `${backBtn()}
+    <div class="top"><span>${s.title} · ${t().question} ${s.idx+1}/${s.ids.length}</span><span id="timer"></span></div>
+    <div class="dots">${s.ids.map((_, i) => `<span class="${i < s.res.length ? (s.res[i] ? "ok" : "bad") : (i === s.idx ? "cur" : "")}"></span>`).join("")}</div>
+    ${q.img ? `<div class="img">${q.img}</div>` : ""}
+    <div class="q">${q.q[L]}</div>
+    <div>${q.o[L].map((o, i) => `<button class="opt" onclick="answer(${i})">${i+1}. ${o}</button>`).join("")}</div>
+    <div id="after"></div>`;
+  tick();
+  window.scrollTo(0, 0);
+}
+
+function answer(i){
+  const s = session;
+  if (s.res.length > s.idx) return;
+  const q = QUESTIONS[idx(s.ids[s.idx])], ok = i === q.c;
+  s.res.push(ok); if (!ok) s.errors++;
+  setStatus(q.id, ok ? "1" : "2");
+  S.recent = [q.id, ...(S.recent || []).filter(x => x !== q.id)].slice(0, 80);   // недавно показанные — реже в новых билетах
+  save(); haptic(ok);
+
+  document.querySelectorAll(".opt").forEach((b, k) => {
+    b.disabled = true;
+    if (k === q.c) b.classList.add("ok"); else if (k === i) b.classList.add("bad");
+  });
+  document.querySelectorAll(".dots span")[s.idx].className = ok ? "ok" : "bad";
+
+  const end = s.idx === s.ids.length-1 || (s.mode === "exam" && s.errors > CONFIG.maxErrors);
+  const verdict = `<b>${ok ? "✅ " + t().correct : "❌ " + t().wrong}.</b>`;
+  // Экзамен — без объяснений (как на реальном экзамене).
+  // Билеты/ошибки: верный ответ — объяснение бесплатно, неверный — объяснение за rewarded-рекламу.
+  let html = `<div class="explain">${verdict}${s.mode !== "exam" && ok ? " " + q.e[S.lang] + ruleRef(q) : ""}</div>`;
+  if (s.mode !== "exam" && !ok)
+    html += `<div id="expBox"><button class="btn sec" id="expBtn" onclick="unlockExplain(${q.id})">🎬 ${t().explainAd}</button></div>`;
+  html += `<button class="btn" onclick="${end ? "finish()" : "nextQ()"}">${end ? t().finish : t().next}</button>`;
+  document.getElementById("after").innerHTML = html;
+}
+function unlockExplain(id){
+  const btn = document.getElementById("expBtn");
+  if (!btn || btn.disabled) return;
+  btn.disabled = true;
+  Ads.rewarded().then(ok => {
+    const box = document.getElementById("expBox");
+    if (!box) return;
+    if (ok) { const q = QUESTIONS[idx(id)]; box.innerHTML = `<div class="explain">💡 ${q.e[S.lang]}${ruleRef(q)}</div>`; }
+    else { btn.disabled = false; box.insertAdjacentHTML("beforeend", `<div class="hint center" style="margin:-4px 0 10px">${t().adFail}</div>`); }
+  });
+}
+function ruleRef(q){
+  if (!q.rule) return "";
+  let r = q.rule;
+  if (S.lang === "uz") r = r.replace(/п\. ?/g, "").replace("дорожные знаки", "yo'l belgilari").replace("первая помощь", "birinchi yordam")
+                          .replace("знак", "belgi").replace("раздел", "bo'lim");
+  return `<div class="hint" style="margin-top:6px">📖 ${t().ruleLabel}: ${r}</div>`;
+}
+function nextQ(){ session.idx++; renderQ(); }
+
+// ================== РЕЗУЛЬТАТ ==================
+function finish(){
+  stopTimer();
+  const s = session; if (!s) return;
+  const n = s.ids.length, correct = s.res.filter(Boolean).length;
+  if (s.mode === "exam") return examResult(s, n, correct);
+  setBack(home);
+  // межстраничная реклама после билета — естественная пауза
+  Ads.interstitial().then(() => {
+    app.innerHTML = `${backBtn()}<h1>${t().result}</h1>
+      <div class="big">${correct === n ? "🏆" : "📘"}</div>
+      <div class="card center"><b style="font-size:22px">${correct} / ${n}</b></div>
+      ${reviewHtml(s)}
+      <button class="btn" onclick="${s.mode === "ticket" ? "startTicket()" : "startMistakes()"}">${s.mode === "ticket" ? t().newTicket : t().retry}</button>
+      <button class="btn sec" onclick="home()">${t().home}</button>`;
+  });
+}
+function examResult(s, n, correct){
+  setBack(home);
+  const passed = !s.timeout && s.res.length === n && s.errors <= CONFIG.maxErrors;
+  app.innerHTML = `${backBtn()}
+    <div class="big">${passed ? "🎉" : "😔"}</div>
+    <h1 class="center">${passed ? t().passed : t().failed}</h1>
+    <div class="card center">${s.timeout ? t().timeout + "<br>" : ""}${t().errors}: <b>${s.errors}</b> · ${correct} / ${n}</div>
+    ${reviewHtml(s)}
+    ${passed ? `<button class="btn" onclick="shareResult(${correct},${n})">📤 ${t().share}</button>` : ""}
+    <button class="btn ${passed ? "sec" : ""}" onclick="startExam()">${t().retry}</button>
+    <button class="btn sec" onclick="home()">${t().home}</button>`;
+}
+function reviewHtml(s){
+  const wrong = s.ids.filter((id, i) => s.res[i] === false);
+  if (!wrong.length) return "";
+  return `<div class="card"><b>${t().review}</b><div class="hint" style="margin-bottom:8px">${t().mistakesHint}</div>` +
+    wrong.map(id => { const q = QUESTIONS[idx(id)];
+      return `<div class="wrong">❌ ${q.q[S.lang]}<br><span style="color:var(--ok)">${t().right}: ${q.o[S.lang][q.c]}</span></div>`; }).join("") +
+    `</div>`;
+}
+function shareResult(c, n){
+  const url = "https://t.me/share/url?url=" + encodeURIComponent(CONFIG.botLink) + "&text=" + encodeURIComponent(t().shareText(c, n));
+  if (inTg) tg.openTelegramLink(url); else window.open(url, "_blank");
+}
+
+load(home);
+</script>
+</body>
