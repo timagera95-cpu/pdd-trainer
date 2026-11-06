@@ -51,6 +51,9 @@ h1{font-size:22px;margin:4px 0 14px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9}
 .modal .box{background:var(--bg);color:var(--text);border-radius:16px;padding:20px;width:85%;max-width:360px;text-align:center}
 .wrong{font-size:14px;margin-bottom:8px}
+.invite{margin-top:22px;border-radius:18px;padding:18px 16px 6px;text-align:center;background:linear-gradient(135deg,rgba(82,136,193,.28),rgba(67,160,71,.22));border:1px solid rgba(127,127,127,.25)}
+.inv-ico{font-size:34px;line-height:1}.inv-t{font-size:18px;font-weight:800;margin-top:8px}.inv-s{font-size:14px;color:var(--hint);margin:6px 4px 14px;line-height:1.35}
+.inv-b{background:#43a047!important;color:#fff!important}
 .deep{line-height:1.45}.deep .row2{margin-bottom:6px}.deep .sec{margin-top:10px;padding-top:10px;border-top:1px solid rgba(127,127,127,.25)}
 .deep .lbl{font-weight:700}.deep .yours{color:var(--bad)}.deep .right{color:var(--ok)}
 </style>
@@ -113,7 +116,9 @@ function makeTicket(n){
 
 // ================== ТЕКСТЫ ИНТЕРФЕЙСА ==================
 const T = {
- ru:{title:"Тренажёр ПДД",progress:"Решено верно",exam:"Экзамен",tickets:"Случайный билет",newTicket:"Новый билет",mistakes:"Мои ошибки",
+ ru:{title:"Тренажёр ПДД",progress:"Решено верно",exam:"Экзамен",tickets:"Случайный билет",newTicket:"Новый билет",
+     invTitle:"Вдвоём готовиться проще",invSub:"Позовите друга, который тоже учится на права: решайте билеты вместе и сдайте с первого раза",invBtn:"Пригласить друга",
+     invText:"Я готовлюсь к экзамену на права в бесплатном тренажёре ПДД прямо в Telegram 🚗 Билеты, перекрёстки, экзамен с таймером. Давай вместе — так быстрее сдадим! 👇",mistakes:"Мои ошибки",
      noMistakes:"Ошибок нет — отлично! 👍",ticket:"Билет",question:"Вопрос",next:"Далее",finish:"Завершить",
      passed:"Экзамен сдан!",failed:"Экзамен не сдан",errors:"Ошибок",timeout:"Время вышло",home:"На главную",
      share:"Поделиться результатом",retry:"Пройти ещё раз",result:"Результат",
@@ -124,7 +129,9 @@ const T = {
      exitExam:"Выйти из экзамена? Результат не сохранится.",mistakesHint:"Правильный ответ убирает вопрос из списка",
      review:"Разбор ошибок",right:"Правильно",
      ruleLabel:"ПДД РУз",yourAns:"Ваш ответ",rightAns:"Правильно",whyLbl:"Почему",remember:"Как запомнить",explainAd:"Объяснение — за просмотр рекламы",adFail:"Реклама закрыта раньше времени — досмотрите до конца, чтобы открыть объяснение"},
- uz:{title:"YHQ trenajyori",progress:"To'g'ri yechildi",exam:"Imtihon",tickets:"Tasodifiy bilet",newTicket:"Yangi bilet",mistakes:"Xatolarim",
+ uz:{title:"YHQ trenajyori",progress:"To'g'ri yechildi",exam:"Imtihon",tickets:"Tasodifiy bilet",newTicket:"Yangi bilet",
+     invTitle:"Ikkalamiz tayyorlansak osonroq",invSub:"Haydovchilikka o'qiyotgan do'stingizni chaqiring: biletlarni birga yeching va birinchi urinishda topshiring",invBtn:"Do'stni taklif qilish",
+     invText:"Men haydovchilik imtihoniga Telegram'dagi bepul YHQ trenajyorida tayyorlanyapman 🚗 Biletlar, chorrahalar, taymerli imtihon. Keling, birga o'qiymiz — tezroq topshiramiz! 👇",mistakes:"Xatolarim",
      noMistakes:"Xatolar yo'q — a'lo! 👍",ticket:"Bilet",question:"Savol",next:"Keyingi",finish:"Yakunlash",
      passed:"Imtihondan o'tdingiz!",failed:"Imtihondan o'tmadingiz",errors:"Xatolar",timeout:"Vaqt tugadi",home:"Bosh sahifa",
      share:"Natijani ulashish",retry:"Qayta topshirish",result:"Natija",
@@ -217,7 +224,13 @@ function home(){
     <button class="btn" onclick="startExam()">🎯 ${t().exam}</button>
     <div class="hint center" style="margin:-4px 0 14px">${t().examInfo(Math.min(CONFIG.examCount,n), CONFIG.examMinutes, CONFIG.maxErrors)}</div>
     <button class="btn sec" onclick="startTicket()">📋 ${t().tickets}</button>
-    <button class="btn sec" onclick="startMistakes()">❗ ${t().mistakes}${mist ? ` (${mist})` : ""}</button>`;
+    <button class="btn sec" onclick="startMistakes()">❗ ${t().mistakes}${mist ? ` (${mist})` : ""}</button>
+    <div class="invite">
+      <div class="inv-ico">🚗🚙</div>
+      <div class="inv-t">${t().invTitle}</div>
+      <div class="inv-s">${t().invSub}</div>
+      <button class="btn inv-b" onclick="inviteFriend()">👋 ${t().invBtn}</button>
+    </div>`;
 }
 
 // ================== СЕССИИ ==================
@@ -369,6 +382,11 @@ function reviewHtml(s){
     wrong.map(id => { const q = QUESTIONS[idx(id)];
       return `<div class="wrong">❌ ${q.q[S.lang]}<br><span style="color:var(--ok)">${t().right}: ${q.o[S.lang][q.c]}</span></div>`; }).join("") +
     `</div>`;
+}
+// Пригласить друга — без бонусов: просто открывает выбор чата с готовым приглашением
+function inviteFriend(){
+  const url = "https://t.me/share/url?url=" + encodeURIComponent(CONFIG.botLink) + "&text=" + encodeURIComponent(t().invText);
+  if (inTg) tg.openTelegramLink(url); else window.open(url, "_blank");
 }
 function shareResult(c, n){
   const url = "https://t.me/share/url?url=" + encodeURIComponent(CONFIG.botLink) + "&text=" + encodeURIComponent(t().shareText(c, n));
