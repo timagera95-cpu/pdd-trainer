@@ -2128,3 +2128,695 @@ function tipKey(q){
   const hit = R.find(([a,b]) => n >= a && n <= b);
   return hit ? hit[2] : null;
 }
+
+// =====================================================================
+// ДЕТСКИЙ РЕЖИМ: правила для пешеходов, пассажиров и юных велосипедистов.
+// Отдельный массив KIDS — не смешивается с билетами и экзаменом. Без рекламы.
+// Поле rule: пункт ПДД РУз или «совет безопасности».
+// =====================================================================
+const KP = {   // картинки
+  man: (walk, c) => walk
+    ? `<g stroke="${c}" stroke-width="7" stroke-linecap="round" fill="none"><line x1="50" y1="31" x2="46" y2="55"/><line x1="49" y1="36" x2="37" y2="48"/><line x1="49" y1="36" x2="61" y2="47"/><line x1="46" y1="55" x2="36" y2="75"/><line x1="46" y1="55" x2="58" y2="74"/></g><circle cx="51" cy="20" r="8" fill="${c}"/>`
+    : `<g stroke="${c}" stroke-width="7" stroke-linecap="round" fill="none"><line x1="50" y1="31" x2="50" y2="56"/><line x1="50" y1="36" x2="42" y2="54"/><line x1="50" y1="36" x2="58" y2="54"/><line x1="47" y1="56" x2="45" y2="77"/><line x1="53" y1="56" x2="55" y2="77"/></g><circle cx="50" cy="20" r="8" fill="${c}"/>`,
+  pedLight(on){ // on: "r" | "g"
+    const box = (y, col, lit, walk) => `<rect x="28" y="${y}" width="44" height="44" rx="6" fill="#222"/><g transform="translate(28 ${y}) scale(.44)">${KP.man(walk, lit ? col : "#444")}</g>`;
+    return `<svg viewBox="0 0 100 100"><rect x="24" y="2" width="52" height="96" rx="9" fill="#333"/>${box(5,"#ff3b30",on==="r",false)}${box(51,"#34c759",on==="g",true)}</svg>`;
+  },
+  crossing: null
+};
+KP.crossing = `<svg viewBox="0 0 100 100"><rect x="5" y="5" width="90" height="90" rx="8" fill="#1e5bb8" stroke="#fff" stroke-width="2"/><polygon points="50,12 89,84 11,84" fill="#fff"/>` +
+  [0,1,2,3,4].map(i => `<rect x="${22+i*12}" y="74" width="7" height="7" fill="#111"/>`).join("") +
+  `<g transform="translate(29 27) scale(.48)">${KP.man(true,"#111")}</g></svg>`;
+KP.kids = `<svg viewBox="0 0 100 100"><polygon points="50,7 95,89 5,89" fill="#fff" stroke="#d32f2f" stroke-width="8" stroke-linejoin="round"/>` +
+  `<g transform="translate(22 36) scale(.42)">${KP.man(true,"#111")}</g><g transform="translate(42 44) scale(.34)">${KP.man(true,"#111")}</g></svg>`;
+KP.pedPath = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#1e5bb8" stroke="#fff" stroke-width="2"/><g transform="translate(18 14) scale(.66)">${KP.man(true,"#fff")}</g></svg>`;
+KP.noPed = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#fff" stroke="#d32f2f" stroke-width="10"/><g transform="translate(18 14) scale(.66)">${KP.man(true,"#111")}</g><line x1="22" y1="22" x2="78" y2="78" stroke="#d32f2f" stroke-width="8"/></svg>`;
+KP.bike = `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#1e5bb8" stroke="#fff" stroke-width="2"/><g fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><circle cx="30" cy="62" r="13"/><circle cx="70" cy="62" r="13"/><polyline points="30,62 44,40 60,40 70,62"/><polyline points="44,40 52,62 60,40"/><line x1="40" y1="34" x2="50" y2="34"/><line x1="58" y1="33" x2="64" y2="33"/></g></svg>`;
+KP.light = on => `<svg viewBox="0 0 100 100"><rect x="32" y="4" width="36" height="92" rx="10" fill="#333"/>` +
+  ["#e53935","#fdd835","#43a047"].map((c,i)=>`<circle cx="50" cy="${20+i*30}" r="11" fill="${i===on?c:'#555'}"/>`).join("") + `</svg>`;
+
+const KIDS = [];
+function KQ(rule, img, qru, quz, okRu, okUz, badRu, badUz, eru, euz){
+  KIDS.push({ id: "k" + (KIDS.length + 1), rule, img, q:{ru:qru, uz:quz}, o:{ru:[okRu, ...badRu], uz:[okUz, ...badUz]}, c:0, e:{ru:eru, uz:euz} });
+}
+const TIP = "совет безопасности";
+
+KQ("п. 18", KP.light(0), "Светофор горит красным. Можно переходить дорогу?", "Svetoforda qizil yonmoqda. Yo'ldan o'tish mumkinmi?",
+  "Нет, нужно стоять и ждать", "Yo'q, turib kutish kerak",
+  ["Да, если быстро перебежать","Да, если машин не видно","Да, если взрослые пошли"],
+  ["Ha, tez yugurib o'tsa","Ha, mashina ko'rinmasa","Ha, kattalar ketsa"],
+  "Красный — это «стоп». Даже если машин не видно, ждём зелёного: машина может выехать из-за угла очень быстро.",
+  "Qizil — bu «to'xta». Mashina ko'rinmasa ham yashilni kutamiz: mashina burchakdan juda tez chiqib qolishi mumkin.");
+KQ("п. 18", KP.pedLight("g"), "Загорелся зелёный человечек. Что нужно сделать?", "Yashil odamcha yondi. Nima qilish kerak?",
+  "Посмотреть по сторонам и спокойно переходить", "Atrofga qarab, xotirjam o'tish",
+  ["Бежать через дорогу как можно быстрее","Переходить, не глядя по сторонам","Стоять и ждать красного"],
+  ["Yo'ldan imkon qadar tez yugurish","Atrofga qaramay o'tish","Turib, qizilni kutish"],
+  "Зелёный человечек разрешает идти. Но сначала убедись, что машины остановились — водитель мог не заметить сигнал.",
+  "Yashil odamcha yurishga ruxsat beradi. Lekin avval mashinalar to'xtaganiga ishonch hosil qil — haydovchi signalni ko'rmagan bo'lishi mumkin.");
+KQ("п. 18", KP.pedLight("r"), "Горит красный человечек. Что это значит?", "Qizil odamcha yonmoqda. Bu nimani bildiradi?",
+  "Стой и жди — переходить нельзя", "To'xta va kut — o'tish mumkin emas",
+  ["Можно идти, если спешишь","Нужно идти быстрее","Можно идти по краю «зебры»"],
+  ["Shoshilsang, yurish mumkin","Tezroq yurish kerak","«Zebra» chetidan yurish mumkin"],
+  "Красный стоящий человечек — переходить нельзя. Дождись зелёного шагающего человечка.",
+  "Qizil turgan odamcha — o'tish mumkin emas. Yashil yurayotgan odamchani kut.");
+KQ("п. 18", KP.light(1), "Загорелся жёлтый. Ты ещё не начал переходить. Что делать?", "Sariq yondi. Sen hali o'tishni boshlamading. Nima qilish kerak?",
+  "Не начинать переход и ждать", "O'tishni boshlamay, kutish",
+  ["Быстро побежать, пока не красный","Начать переход медленно","Перейти, если рядом друзья"],
+  ["Qizil yonguncha tez yugurish","O'tishni sekin boshlash","Yonda do'stlar bo'lsa, o'tish"],
+  "Жёлтый тоже запрещает начинать переход: скоро загорится красный, и машины поедут.",
+  "Sariq ham o'tishni boshlashni taqiqlaydi: tez orada qizil yonadi va mashinalar yuradi.");
+KQ("п. 17", null, "Где правильно переходить дорогу?", "Yo'ldan qayerda to'g'ri o'tiladi?",
+  "По пешеходному переходу — «зебре», подземному или надземному", "Piyodalar o'tish joyidan — «zebra», yer osti yoki yer usti o'tish joyidan",
+  ["Там, где ближе к дому","Между припаркованными машинами","Там, где нет машин в эту секунду"],
+  ["Uyga yaqinroq joydan","To'xtab turgan mashinalar orasidan","Ayni paytda mashina yo'q joydan"],
+  "«Зебра» — место, где водители ждут пешеходов. Между машинами тебя не видно, а водитель не ожидает, что ты выйдешь.",
+  "«Zebra» — haydovchilar piyodalarni kutadigan joy. Mashinalar orasida seni ko'rishmaydi, haydovchi esa chiqib qolishingni kutmaydi.");
+KQ("знак «Пешеходный переход»", KP.crossing, "Что означает этот знак?", "Bu belgi nimani bildiradi?",
+  "Пешеходный переход", "Piyodalar o'tish joyi",
+  ["Здесь гулять запрещено","Остановка автобуса","Детская площадка"],
+  ["Bu yerda sayr qilish taqiqlangan","Avtobus bekati","Bolalar maydonchasi"],
+  "Синий квадрат с человечком на «зебре» показывает, где можно переходить дорогу.",
+  "«Zebra»dagi odamchali ko'k kvadrat yo'ldan qayerda o'tish mumkinligini ko'rsatadi.");
+KQ("знак «Дети»", KP.kids, "Для кого этот знак и что он значит?", "Bu belgi kim uchun va nimani bildiradi?",
+  "Для водителей: осторожно, рядом могут быть дети", "Haydovchilar uchun: ehtiyot bo'ling, yaqinda bolalar bo'lishi mumkin",
+  ["Для детей: здесь можно бегать","Здесь детская площадка, можно играть на дороге","Детям вход запрещён"],
+  ["Bolalar uchun: bu yerda yugurish mumkin","Bu yerda bolalar maydonchasi, yo'lda o'ynash mumkin","Bolalarga kirish taqiqlangan"],
+  "Красный треугольник предупреждает водителей. Он ставится у школ и площадок, чтобы машины ехали медленнее. Но играть на дороге всё равно нельзя!",
+  "Qizil uchburchak haydovchilarni ogohlantiradi. U maktab va maydonchalar yoniga qo'yiladi, mashinalar sekinroq yurishi uchun. Lekin yo'lda o'ynash baribir mumkin emas!");
+KQ("знак «Пешеходная дорожка»", KP.pedPath, "Что означает этот знак?", "Bu belgi nimani bildiradi?",
+  "Пешеходная дорожка — здесь ходят пешеходы", "Piyodalar yo'lagi — bu yerda piyodalar yuradi",
+  ["Пешеходам ходить запрещено","Пешеходный переход","Осторожно, дети"],
+  ["Piyodalarga yurish taqiqlangan","Piyodalar o'tish joyi","Ehtiyot bo'ling, bolalar"],
+  "Синий круг с человечком — дорожка для пешеходов. Машинам по ней ездить нельзя.",
+  "Odamchali ko'k doira — piyodalar yo'lagi. Mashinalar undan yura olmaydi.");
+KQ("знак «Движение пешеходов запрещено»", KP.noPed, "Что означает этот знак?", "Bu belgi nimani bildiradi?",
+  "Пешеходам здесь ходить запрещено", "Bu yerda piyodalarga yurish taqiqlangan",
+  ["Пешеходная дорожка","Пешеходный переход","Можно гулять с родителями"],
+  ["Piyodalar yo'lagi","Piyodalar o'tish joyi","Ota-onalar bilan sayr qilish mumkin"],
+  "Красный круг с перечёркнутым человечком запрещает идти. Найди другой путь.",
+  "Ustidan chizilgan odamchali qizil doira yurishni taqiqlaydi. Boshqa yo'l top.");
+KQ("знак «Велосипедная дорожка»", KP.bike, "Что означает этот знак?", "Bu belgi nimani bildiradi?",
+  "Велосипедная дорожка", "Velosiped yo'lagi",
+  ["Велосипеды запрещены","Ремонт велосипедов","Стоянка велосипедов"],
+  ["Velosipedlar taqiqlangan","Velosiped ta'miri","Velosipedlar to'xtash joyi"],
+  "Синий круг с велосипедом — дорожка для велосипедистов. Пешеходу по ней ходить можно, только если нет тротуара.",
+  "Velosipedli ko'k doira — velosipedchilar yo'lagi. Piyoda undan faqat yo'lak bo'lmasa yurishi mumkin.");
+KQ("п. 15", null, "Тротуара нет. По какой стороне дороги идти?", "Yo'lak yo'q. Yo'lning qaysi tomonidan yurish kerak?",
+  "По краю, навстречу машинам", "Chetidan, mashinalarga qarshi",
+  ["По краю, спиной к машинам","По середине дороги","Как удобнее"],
+  ["Chetidan, mashinalarga orqa o'girib","Yo'l o'rtasidan","Qanday qulay bo'lsa"],
+  "Идём навстречу машинам — так ты видишь каждую машину, которая едет к тебе, и успеешь отойти.",
+  "Mashinalarga qarshi yuramiz — shunda senga kelayotgan har bir mashinani ko'rasan va chetga chiqishga ulgurasan.");
+KQ(TIP, null, "Ты у «зебры». Что сделать перед тем, как переходить?", "Sen «zebra» yonidasan. O'tishdan oldin nima qilish kerak?",
+  "Остановиться, посмотреть налево, потом направо", "To'xtab, chapga, keyin o'ngga qarash",
+  ["Сразу шагнуть на дорогу","Посмотреть только направо","Закрыть глаза и быстро пройти"],
+  ["Darhol yo'lga qadam tashlash","Faqat o'ngga qarash","Ko'zni yumib, tez o'tish"],
+  "Сначала опасность слева — оттуда едут машины по ближней полосе. Дойдя до середины, посмотри направо.",
+  "Avval xavf chapda — u yerdan yaqin qatordagi mashinalar keladi. O'rtaga yetganda o'ngga qara.");
+KQ("п. 19", null, "Можно ли смотреть в телефон или слушать музыку в наушниках, когда переходишь дорогу?", "Yo'ldan o'tayotganda telefonga qarash yoki quloqchinda musiqa tinglash mumkinmi?",
+  "Нет, телефон убрать, наушники снять", "Yo'q, telefonni olib qo'yish, quloqchinni yechish",
+  ["Да, если играет тихо","Да, если идёшь быстро","Да, на зелёный свет"],
+  ["Ha, sekin chalsa","Ha, tez yursang","Ha, yashil chiroqda"],
+  "На дороге пешеходу запрещено пользоваться телефоном и наушниками: ты не услышишь сигнал машины и не увидишь опасность.",
+  "Yo'lda piyodaga telefon va quloqchindan foydalanish taqiqlangan: mashina signalini eshitmaysan va xavfni ko'rmaysan.");
+KQ(TIP, null, "Твой мяч выкатился на дорогу. Что делать?", "To'pingiz yo'lga dumalab ketdi. Nima qilish kerak?",
+  "Не бежать за ним и позвать взрослого", "Uning orqasidan yugurmay, kattani chaqirish",
+  ["Быстро побежать и забрать","Попросить машины остановиться","Подождать на дороге, пока он остановится"],
+  ["Tez yugurib olish","Mashinalardan to'xtashni so'rash","To'xtaguncha yo'lda kutish"],
+  "Мяч можно купить новый, а тебя — нет. Никогда не выбегай за мячом на дорогу: водитель не успеет затормозить.",
+  "To'pni yangisini olsa bo'ladi, seni esa — yo'q. Hech qachon to'p ortidan yo'lga yugurma: haydovchi tormozlashga ulgurmaydi.");
+KQ(TIP, null, "Где безопасно играть с друзьями?", "Do'stlar bilan qayerda xavfsiz o'ynash mumkin?",
+  "На детской площадке или во дворе, подальше от дороги", "Bolalar maydonchasida yoki hovlida, yo'ldan uzoqda",
+  ["На обочине","На парковке между машинами","У края дороги, где мало машин"],
+  ["Yo'l yoqasida","Mashinalar orasida to'xtash joyida","Mashina kam yo'l chetida"],
+  "Возле дороги и на парковке водители могут тебя не заметить, особенно когда сдают назад.",
+  "Yo'l yonida va to'xtash joyida haydovchilar seni ko'rmasligi mumkin, ayniqsa orqaga yurganda.");
+KQ("п. 19", null, "Ты вышел из автобуса, и нужно перейти дорогу. Как лучше?", "Avtobusdan tushding va yo'ldan o'tish kerak. Qanday qilgan yaxshi?",
+  "Подождать, пока автобус уедет, и перейти по «зебре»", "Avtobus ketishini kutib, «zebra»dan o'tish",
+  ["Сразу выбежать перед автобусом","Перейти прямо за автобусом, не глядя","Пролезть под автобусом"],
+  ["Darhol avtobus oldidan yugurib chiqish","Qaramay avtobus orqasidan o'tish","Avtobus ostidan o'tish"],
+  "Стоящий автобус закрывает обзор: ты не видишь машины, а они — тебя. По правилам автобус обходят сзади, но безопаснее дождаться, когда он уедет.",
+  "Turgan avtobus ko'rinishni to'sadi: sen mashinalarni, ular esa seni ko'rmaydi. Qoidaga ko'ra avtobus orqasidan aylanib o'tiladi, lekin u ketishini kutish xavfsizroq.");
+KQ("п. 21", null, "Едет машина скорой помощи с сиреной и мигалкой. Что делать?", "Sirena va chirog'i yoqilgan tez yordam mashinasi kelmoqda. Nima qilish kerak?",
+  "Не переходить и подождать, пока проедет", "O'tmay, u o'tib ketishini kutish",
+  ["Быстро перебежать, пока далеко","Помахать водителю","Переходить, если горит зелёный"],
+  ["Uzoqda ekan, tez yugurib o'tish","Haydovchiga qo'l silkitish","Yashil yonsa, o'tish"],
+  "Машине с сиреной уступают все — даже на зелёный. Она спешит спасать людей.",
+  "Sirenali mashinaga hamma yo'l beradi — yashilda ham. U odamlarni qutqarishga shoshilmoqda.");
+KQ("п. 22", null, "Где ждать автобус?", "Avtobusni qayerda kutish kerak?",
+  "На остановке, на тротуаре", "Bekatda, yo'lakda",
+  ["На краю дороги, чтобы водитель увидел","На проезжей части у остановки","На другой стороне дороги"],
+  ["Haydovchi ko'rishi uchun yo'l chetida","Bekat yonida qatnov qismida","Yo'lning narigi tomonida"],
+  "Ждём на посадочной площадке или тротуаре и выходим к автобусу только когда он полностью остановился.",
+  "Chiqish maydonchasida yoki yo'lakda kutamiz va avtobusga faqat u to'liq to'xtaganda chiqamiz.");
+KQ("п. 23", null, "С какой стороны выходить из машины?", "Mashinadan qaysi tomondan tushish kerak?",
+  "Со стороны тротуара, когда машина остановилась", "Yo'lak tomonidan, mashina to'xtagandan keyin",
+  ["Со стороны дороги","С любой стороны","Когда машина ещё едет медленно"],
+  ["Yo'l tomonidan","Istalgan tomondan","Mashina hali sekin ketayotganda"],
+  "Выходим только со стороны тротуара и только после полной остановки: со стороны дороги мимо едут машины.",
+  "Faqat yo'lak tomonidan va faqat to'liq to'xtagandan keyin tushamiz: yo'l tomonidan mashinalar o'tib turadi.");
+KQ("п. 24", null, "Можно ли открывать дверь машины, пока она едет?", "Mashina ketayotganda eshigini ochish mumkinmi?",
+  "Нет, это запрещено", "Yo'q, bu taqiqlangan",
+  ["Да, если жарко","Да, если едем медленно","Да, если папа разрешил"],
+  ["Ha, issiq bo'lsa","Ha, sekin ketayotgan bo'lsak","Ha, dadam ruxsat bersa"],
+  "Открытая на ходу дверь опасна и для тебя, и для других машин. Также нельзя отвлекать водителя.",
+  "Harakatlanayotganda ochilgan eshik sen uchun ham, boshqa mashinalar uchun ham xavfli. Haydovchini chalg'itish ham mumkin emas.");
+KQ("п. 159", null, "Где правильно сидеть ребёнку в машине?", "Mashinada bola qayerda to'g'ri o'tiradi?",
+  "В детском кресле или пристёгнутым на заднем сиденье", "Bolalar o'rindig'ida yoki orqa o'rindiqda kamar taqib",
+  ["На коленях у мамы","Впереди без детского кресла","Стоя между сиденьями"],
+  ["Onasining tizzasida","Oldinda bolalar o'rindig'isiz","O'rindiqlar orasida tik turib"],
+  "На переднем сиденье ребёнок может ехать только в специальном детском кресле. При резком торможении удержать ребёнка руками невозможно.",
+  "Old o'rindiqda bola faqat maxsus bolalar o'rindig'ida yurishi mumkin. Keskin tormozlanganda bolani qo'l bilan ushlab qolib bo'lmaydi.");
+KQ("п. 165", null, "С какого возраста можно кататься на велосипеде по дороге?", "Necha yoshdan yo'lda velosiped haydash mumkin?",
+  "С 14 лет", "14 yoshdan",
+  ["С 7 лет","С 10 лет","С любого возраста"],
+  ["7 yoshdan","10 yoshdan","Istalgan yoshdan"],
+  "По дорогам — с 14 лет. А до этого — во дворе, в парке и на велосипедных дорожках.",
+  "Yo'llarda — 14 yoshdan. Undan oldin — hovlida, bog'da va velosiped yo'laklarida.");
+KQ("п. 168", null, "Ты на велосипеде у «зебры». Как перейти дорогу?", "Sen velosipedda «zebra» yonidasan. Yo'ldan qanday o'tasan?",
+  "Слезть и вести велосипед рядом", "Tushib, velosipedni yonda yetaklash",
+  ["Проехать быстро по «зебре»","Проехать рядом с «зеброй»","Позвонить в звонок и ехать"],
+  ["«Zebra»dan tez minib o'tish","«Zebra» yonidan minib o'tish","Qo'ng'iroq chalib, minib o'tish"],
+  "Ехать через пешеходный переход нельзя: слезь и переведи велосипед, как пешеход.",
+  "Piyodalar o'tish joyidan minib o'tish mumkin emas: tush va velosipedni piyodadek olib o't.");
+KQ(TIP, null, "Что лучше надеть, когда катаешься на велосипеде?", "Velosiped haydaganda nima kiygan yaxshi?",
+  "Шлем и одежду со светоотражателями", "Shlem va nur qaytargichli kiyim",
+  ["Наушники с музыкой","Длинный шарф","Тёмную одежду"],
+  ["Musiqali quloqchin","Uzun sharf","Qora kiyim"],
+  "Шлем защищает голову при падении, а светоотражатели помогают водителям увидеть тебя. Длинный шарф может попасть в колесо.",
+  "Shlem yiqilganda boshni himoya qiladi, nur qaytargichlar esa haydovchilarga seni ko'rishga yordam beradi. Uzun sharf g'ildirakka tushib qolishi mumkin.");
+KQ(TIP, null, "Вечером темно. Что поможет водителю увидеть тебя на дороге?", "Kechqurun qorong'i. Haydovchiga seni yo'lda ko'rishga nima yordam beradi?",
+  "Светоотражатель (фликер) на одежде или рюкзаке", "Kiyim yoki ryukzakdagi nur qaytargich (fliker)",
+  ["Тёмная куртка","Яркий телефон в руке","Ничего не поможет"],
+  ["Qora kurtka","Qo'ldagi yorqin telefon","Hech narsa yordam bermaydi"],
+  "В темноте водитель видит пешехода в тёмной одежде очень поздно. Светоотражатель светится в свете фар издалека.",
+  "Qorong'ida haydovchi qora kiyimdagi piyodani juda kech ko'radi. Nur qaytargich fara nurida uzoqdan yaltiraydi.");
+KQ("п. 20", null, "Ты не успел перейти, и загорелся красный. Где остановиться?", "O'tishga ulgurmading va qizil yondi. Qayerda to'xtash kerak?",
+  "На островке безопасности или на линии посередине дороги", "Xavfsizlik orolchasida yoki yo'l o'rtasidagi chiziqda",
+  ["Бежать обратно","Остановиться посреди своей полосы","Идти дальше на красный"],
+  ["Orqaga yugurish","O'z qatoring o'rtasida to'xtash","Qizilda davom etish"],
+  "Остановись на островке безопасности или на средней линии и дождись зелёного. Бежать назад опасно — можно попасть под машину.",
+  "Xavfsizlik orolchasida yoki o'rta chiziqda to'xta va yashilni kut. Orqaga yugurish xavfli — mashina ostida qolish mumkin.");
+KQ(TIP, null, "Как правильно переходить дорогу по «зебре»?", "«Zebra»dan qanday to'g'ri o'tiladi?",
+  "Спокойным шагом, не останавливаясь и глядя по сторонам", "Xotirjam qadam bilan, to'xtamay va atrofga qarab",
+  ["Бегом, чтобы быстрее","Медленно, останавливаясь на середине","Наискосок, так короче"],
+  ["Tezroq bo'lishi uchun yugurib","Sekin, o'rtada to'xtab","Qiya, shunday qisqaroq"],
+  "Бегом легко споткнуться, а наискосок путь по дороге длиннее. Идём прямо, спокойно и внимательно.",
+  "Yugurganda qoqilish oson, qiya yo'l esa yo'lda uzunroq. To'g'ri, xotirjam va diqqat bilan yuramiz.");
+KQ(TIP, null, "Машина подъезжает к «зебре», но ещё не остановилась. Что делать?", "Mashina «zebra»ga yaqinlashmoqda, lekin hali to'xtamadi. Nima qilish kerak?",
+  "Подождать, пока машина остановится", "Mashina to'xtashini kutish",
+  ["Идти — на «зебре» пешеход главный","Побежать, чтобы успеть","Поднять руку и идти"],
+  ["Yurish — «zebra»da piyoda asosiy","Ulgurish uchun yugurish","Qo'lni ko'tarib yurish"],
+  "Водитель обязан пропустить пешехода, но он может не заметить тебя. Шагай, только когда машина точно остановилась.",
+  "Haydovchi piyodani o'tkazishi shart, lekin seni ko'rmasligi mumkin. Mashina aniq to'xtaganda qadam tashla.");
+
+// =====================================================================
+// ДЕТСКИЙ РЕЖИМ — ПАРТИЯ 2: 100 вопросов (загадки, ситуации, «правда или нет»)
+// =====================================================================
+KP.emo = e => `<svg viewBox="0 0 100 100"><text x="50" y="74" font-size="66" text-anchor="middle">${e}</text></svg>`;
+const RID = TIP;
+const YES = ["Да","Ha"], NO = ["Нет","Yo'q"];
+// «Правда или нет?» — 2 варианта превращаем в 4, добавив шуточные
+function TF(rule, img, qru, quz, truth, eru, euz){
+  const ok = truth ? YES : NO, bad = truth ? NO : YES;
+  KQ(rule, img, "Правда или нет? " + qru, "To'g'rimi yoki yo'qmi? " + quz, ok[0], ok[1],
+    [bad[0], "Только по выходным", "Только если мама не видит"], [bad[1], "Faqat dam olish kunlari", "Faqat onam ko'rmasa"], eru, euz);
+}
+
+// ---------- ЗАГАДКИ ----------
+KQ(RID, KP.emo("🚦"), "Загадка: у меня три глаза — красный, жёлтый и зелёный. Я стою на перекрёстке и всем говорю, когда идти. Кто я?", "Topishmoq: uchta ko'zim bor — qizil, sariq va yashil. Chorrahada turaman va hammaga qachon yurishni aytaman. Men kimman?",
+  "Светофор", "Svetofor", ["Фонарь","Ёлка","Регулировщик"], ["Fonar","Archa","Tartibga soluvchi"],
+  "Светофор — главный помощник на перекрёстке. Красный — стой, жёлтый — жди, зелёный — иди, посмотрев по сторонам.",
+  "Svetofor — chorrahadagi asosiy yordamchi. Qizil — to'xta, sariq — kut, yashil — atrofga qarab yur.");
+KQ(RID, KP.emo("🦓"), "Загадка: полосатая, лежит на дороге, по ней люди переходят. Что это?", "Topishmoq: yo'l-yo'l, yo'lda yotadi, undan odamlar o'tadi. Bu nima?",
+  "Пешеходный переход — «зебра»", "Piyodalar o'tish joyi — «zebra»", ["Настоящая зебра","Ковёр","Полосатый шарф"], ["Haqiqiy zebra","Gilam","Yo'l-yo'l sharf"],
+  "«Зеброй» называют переход за белые полосы, похожие на полоски зебры.",
+  "O'tish joyini zebradek oq chiziqlari uchun «zebra» deyishadi.");
+KQ(RID, KP.emo("🚌"), "Загадка: большой, длинный, возит много людей по одному и тому же маршруту и останавливается на остановках. Кто это?", "Topishmoq: katta, uzun, ko'p odamni bir xil yo'nalishda tashiydi va bekatlarda to'xtaydi. Bu kim?",
+  "Автобус", "Avtobus", ["Самолёт","Велосипед","Трактор"], ["Samolyot","Velosiped","Traktor"],
+  "Автобус ездит по маршруту и останавливается на остановках. Ждать его нужно на тротуаре.",
+  "Avtobus yo'nalish bo'yicha yuradi va bekatlarda to'xtaydi. Uni yo'lakda kutish kerak.");
+KQ(RID, KP.emo("🚑"), "Загадка: белая машина с красным крестом, громко воет и спешит спасать людей. Что это?", "Topishmoq: qizil xochli oq mashina, baland ovozda chinqiradi va odamlarni qutqarishga shoshiladi. Bu nima?",
+  "Скорая помощь", "Tez yordam", ["Такси","Почтовая машина","Мороженщик"], ["Taksi","Pochta mashinasi","Muzqaymoqchi"],
+  "Скорую вызывают по номеру 103. Когда она едет с сиреной, ей уступают все.",
+  "Tez yordam 103 raqami orqali chaqiriladi. U sirena bilan kelganda hamma yo'l beradi.");
+KQ(RID, KP.emo("🚒"), "Загадка: красная машина с длинной лестницей, тушит пожары. Как её вызвать?", "Topishmoq: uzun narvonli qizil mashina, yong'inni o'chiradi. Uni qanday chaqiriladi?",
+  "Позвонить 101", "101 ga qo'ng'iroq qilish", ["Позвонить 103","Позвонить 102","Покричать в окно"], ["103 ga qo'ng'iroq qilish","102 ga qo'ng'iroq qilish","Derazadan baqirish"],
+  "Пожарные — 101, полиция — 102, скорая помощь — 103. Запомни эти номера!",
+  "O't o'chiruvchilar — 101, politsiya — 102, tez yordam — 103. Bu raqamlarni eslab qol!");
+KQ(RID, KP.emo("🚲"), "Загадка: два колеса, руль и педали, едет, только если крутишь ногами. Что это?", "Topishmoq: ikki g'ildirak, rul va pedallar, faqat oyoq bilan aylantirsang yuradi. Bu nima?",
+  "Велосипед", "Velosiped", ["Мотоцикл","Самокат","Тележка"], ["Mototsikl","Samokat","Arava"],
+  "У мотоцикла тоже два колеса, но он едет на моторе, а велосипед — на твоих ногах.",
+  "Mototsiklda ham ikki g'ildirak bor, lekin u motor bilan yuradi, velosiped esa — sening oyoqlaring bilan.");
+KQ(RID, KP.emo("🛣️"), "Загадка: по ней ездят машины, а люди по ней не ходят. Что это?", "Topishmoq: undan mashinalar yuradi, odamlar esa unda yurmaydi. Bu nima?",
+  "Проезжая часть дороги", "Yo'lning qatnov qismi", ["Тротуар","Детская площадка","Пешеходная дорожка"], ["Yo'lak","Bolalar maydonchasi","Piyodalar yo'lagi"],
+  "Проезжая часть — для машин. Пешеходы ходят по тротуару, а дорогу переходят по «зебре».",
+  "Qatnov qismi — mashinalar uchun. Piyodalar yo'lakdan yuradi, yo'lni esa «zebra»dan kesib o'tadi.");
+KQ(RID, KP.emo("🚶"), "Загадка: дорожка рядом с дорогой, по ней ходят люди. Что это?", "Topishmoq: yo'l yonidagi yo'lakcha, undan odamlar yuradi. Bu nima?",
+  "Тротуар", "Yo'lak (trotuar)", ["Обочина для машин","Велодорожка","Трамвайные пути"], ["Mashinalar uchun yo'l yoqasi","Velosiped yo'lagi","Tramvay yo'llari"],
+  "Тротуар — место для пешеходов. По нему безопаснее всего ходить.",
+  "Yo'lak — piyodalar uchun joy. Undan yurish eng xavfsiz.");
+KQ(RID, KP.emo("✨"), "Загадка: маленький, блестящий, висит на рюкзаке и светится, когда на него светят фары. Что это?", "Topishmoq: kichkina, yaltiroq, ryukzakda osilib turadi va fara yorug'ida yaltiraydi. Bu nima?",
+  "Светоотражатель (фликер)", "Nur qaytargich (fliker)", ["Брелок с фонариком на батарейке","Значок","Колокольчик"], ["Batareyali fonarchali brelok","Nishon","Qo'ng'iroqcha"],
+  "Фликер сам не светит, а отражает свет фар — и водитель видит тебя издалека.",
+  "Fliker o'zi yonmaydi, fara nurini qaytaradi — va haydovchi seni uzoqdan ko'radi.");
+KQ(RID, KP.emo("👮"), "Загадка: стоит на перекрёстке в форме, машет жезлом и руками, и все его слушаются — даже светофор! Кто это?", "Topishmoq: chorrahada formada turadi, tayoqcha va qo'llari bilan ishora qiladi, hamma unga bo'ysunadi — hatto svetofor ham! Bu kim?",
+  "Регулировщик", "Tartibga soluvchi", ["Продавец","Почтальон","Водитель автобуса"], ["Sotuvchi","Pochtachi","Avtobus haydovchisi"],
+  "Если сигналы регулировщика не совпадают со светофором, слушаться нужно регулировщика.",
+  "Agar tartibga soluvchi signallari svetoforga mos kelmasa, tartibga soluvchiga bo'ysunish kerak.");
+
+// ---------- СВЕТОФОР ----------
+KQ("п. 18", KP.light(2), "Для машин горит зелёный, а пешеходного светофора здесь нет. Можно переходить по «зебре» через эту дорогу?", "Mashinalarga yashil yonmoqda, piyodalar svetofori esa bu yerda yo'q. Shu yo'ldan «zebra» orqali o'tish mumkinmi?",
+  "Нет — по этой дороге сейчас едут машины", "Yo'q — bu yo'ldan hozir mashinalar yuradi", ["Да, зелёный — значит иди","Да, если быстро","Да, если поднять руку"], ["Ha, yashil — demak yur","Ha, tez bo'lsa","Ha, qo'lni ko'tarsa"],
+  "Зелёный для машин на той дороге, которую ты переходишь, значит, что машины едут. Жди, пока им загорится красный.",
+  "Sen o'tayotgan yo'ldagi mashinalar uchun yashil — demak mashinalar yuradi. Ularga qizil yonishini kut.");
+KQ(TIP, KP.pedLight("g"), "Зелёный человечек начал мигать, а ты ещё на тротуаре. Что делать?", "Yashil odamcha miltillay boshladi, sen esa hali yo'lakdasan. Nima qilish kerak?",
+  "Не начинать переход и дождаться следующего зелёного", "O'tishni boshlamay, keyingi yashilni kutish", ["Бежать изо всех сил","Начать переходить медленно","Переходить, если впереди друг"], ["Bor kuching bilan yugurish","Sekin o'tishni boshlash","Oldinda do'sting bo'lsa, o'tish"],
+  "Мигающий зелёный значит, что время заканчивается. Можешь не успеть — лучше подождать.",
+  "Miltillovchi yashil vaqt tugayotganini bildiradi. Ulgurmasliging mumkin — kutgan yaxshi.");
+KQ(TIP, KP.pedLight("r"), "Красный человечек горит очень долго, машин нет. Можно уже идти?", "Qizil odamcha juda uzoq yonmoqda, mashina yo'q. Endi yursa bo'ladimi?",
+  "Нет, всё равно ждать зелёного", "Yo'q, baribir yashilni kutish", ["Да, светофор, наверное, сломался","Да, если очень скучно","Да, если шагать быстро"], ["Ha, svetofor buzilgandir","Ha, juda zerikarli bo'lsa","Ha, tez yursa"],
+  "Светофор работает по расписанию. Машина может выскочить в любую секунду — терпение спасает жизнь.",
+  "Svetofor jadval bo'yicha ishlaydi. Mashina istalgan soniyada chiqib qolishi mumkin — sabr hayotni saqlaydi.");
+KQ("п. 18", KP.light(0), "Сколько сигналов у обычного светофора для машин?", "Mashinalar uchun oddiy svetoforda nechta signal bor?",
+  "Три: красный, жёлтый, зелёный", "Uchta: qizil, sariq, yashil", ["Два: красный и зелёный","Четыре","Один"], ["Ikkita: qizil va yashil","To'rtta","Bitta"],
+  "Сверху всегда красный, в середине жёлтый, внизу зелёный. Даже если цвета плохо видно, можно понять по месту.",
+  "Tepada doim qizil, o'rtada sariq, pastda yashil. Ranglar yaxshi ko'rinmasa ham, joyidan bilish mumkin.");
+KQ(TIP, KP.light(0), "Какой сигнал светофора всегда сверху?", "Svetoforning qaysi signali doim tepada?",
+  "Красный", "Qizil", ["Зелёный","Жёлтый","Каждый раз по-разному"], ["Yashil","Sariq","Har safar har xil"],
+  "Красный — самый важный сигнал, поэтому он сверху: его видно издалека, даже из-за машин.",
+  "Qizil — eng muhim signal, shuning uchun tepada: u uzoqdan, hatto mashinalar ortidan ham ko'rinadi.");
+KQ(TIP, KP.light(1), "Светофор мигает жёлтым и не переключается. Что это значит для пешехода?", "Svetofor sariq miltillab turibdi va almashmayapti. Bu piyoda uchun nimani bildiradi?",
+  "Светофор не помогает — переходи очень осторожно, пропустив машины", "Svetofor yordam bermaydi — mashinalarni o'tkazib, juda ehtiyotkorlik bilan o't", ["Можно спокойно идти — машины стоят","Нужно стоять до вечера","Это праздник"], ["Bemalol yursa bo'ladi — mashinalar turibdi","Kechgacha turish kerak","Bu bayram"],
+  "Мигающий жёлтый значит, что светофор отключён. Переходи по «зебре», только когда машины пропустили тебя или их нет.",
+  "Miltillovchi sariq svetofor o'chirilganini bildiradi. «Zebra»dan faqat mashinalar seni o'tkazganda yoki ular yo'q bo'lganda o't.");
+KQ(TIP, KP.emo("🌧️"), "Идёт сильный дождь, ты торопишься. Нужно ли ждать зелёный?", "Kuchli yomg'ir yog'yapti, sen shoshyapsan. Yashilni kutish kerakmi?",
+  "Да, в дождь ещё внимательнее", "Ha, yomg'irda yanada ehtiyot bo'lish kerak", ["Нет, в дождь можно на красный","Нет, если есть зонт","Нет, машины в дождь не ездят"], ["Yo'q, yomg'irda qizilda mumkin","Yo'q, soyabon bo'lsa","Yo'q, yomg'irda mashinalar yurmaydi"],
+  "На мокрой дороге машине нужно больше места, чтобы остановиться. А зонт закрывает обзор — смотри по сторонам особенно внимательно.",
+  "Ho'l yo'lda mashinaga to'xtash uchun ko'proq joy kerak. Soyabon esa ko'rinishni to'sadi — atrofga ayniqsa diqqat bilan qara.");
+TF("п. 18", KP.pedLight("r"), "Если очень спешишь, можно перейти на красного человечка.", "Agar juda shoshayotgan bo'lsang, qizil odamchada o'tsa bo'ladi.", false,
+  "Нет! Красный человечек — это «стоп» для всех. Лучше опоздать на минуту, чем попасть под машину.",
+  "Yo'q! Qizil odamcha — hamma uchun «to'xta». Mashina ostida qolgandan ko'ra bir daqiqa kechikkan yaxshi.");
+TF("п. 18", KP.pedLight("g"), "Даже на зелёный нужно посмотреть по сторонам.", "Yashilda ham atrofga qarash kerak.", true,
+  "Да! Какой-нибудь водитель может не успеть остановиться или не заметить красный.",
+  "Ha! Qaysidir haydovchi to'xtashga ulgurmasligi yoki qizilni ko'rmasligi mumkin.");
+
+// ---------- ПЕРЕХОД И УЛИЦА ----------
+KQ(TIP, null, "Где опаснее всего выходить на дорогу?", "Yo'lga chiqish qayerda eng xavfli?",
+  "Из-за стоящих машин, кустов или забора", "Turgan mashinalar, butalar yoki devor ortidan", ["С «зебры» на зелёный","С тротуара у светофора","С подземного перехода"], ["Yashilda «zebra»dan","Svetofor yonidagi yo'lakdan","Yer osti o'tish joyidan"],
+  "Из-за машины или куста тебя не видит водитель, а ты не видишь его. Выходи только там, где дорога хорошо видна.",
+  "Mashina yoki buta ortidan seni haydovchi ko'rmaydi, sen esa uni ko'rmaysan. Faqat yo'l yaxshi ko'rinadigan joydan chiq.");
+KQ(TIP, null, "Рядом есть подземный переход, а до «зебры» далеко. Как лучше перейти?", "Yonda yer osti o'tish joyi bor, «zebra» esa uzoqda. Qanday o'tgan yaxshi?",
+  "По подземному переходу — это самый безопасный путь", "Yer osti o'tish joyidan — bu eng xavfsiz yo'l", ["Перебежать по дороге — так быстрее","Перелезть через ограждение","Перейти между машинами"], ["Yo'ldan yugurib o'tish — tezroq","To'siqdan oshib o'tish","Mashinalar orasidan o'tish"],
+  "Под землёй или над дорогой машин нет вообще. Это лучший переход, даже если немного дольше идти.",
+  "Yer ostida yoki yo'l ustida mashina umuman yo'q. Bu eng yaxshi o'tish joyi, biroz uzoqroq yursang ham.");
+KQ(TIP, null, "На дороге стоит металлическое ограждение. Можно перелезть, чтобы сократить путь?", "Yo'lda temir to'siq turibdi. Yo'lni qisqartirish uchun oshib o'tsa bo'ladimi?",
+  "Нет, ограждение ставят там, где переходить опасно", "Yo'q, to'siq o'tish xavfli joyga qo'yiladi", ["Да, если ты ловкий","Да, если машин мало","Да, если оно низкое"], ["Ha, chaqqon bo'lsang","Ha, mashina kam bo'lsa","Ha, past bo'lsa"],
+  "Ограждение — знак: здесь водители пешеходов не ждут и едут быстро. Иди до перехода.",
+  "To'siq — belgi: bu yerda haydovchilar piyodani kutmaydi va tez yuradi. O'tish joyigacha bor.");
+KQ("п. 19", null, "Тебе нужно перейти дорогу, а рядом стоит трамвай. Как его обходить?", "Yo'ldan o'tishing kerak, yonda tramvay turibdi. Uni qanday aylanib o'tish kerak?",
+  "Спереди, убедившись, что машин нет", "Mashina yo'qligiga ishonch hosil qilib, oldidan", ["Сзади","Пролезть между вагонами","Запрыгнуть и выпрыгнуть"], ["Orqasidan","Vagonlar orasidan o'tish","Sakrab chiqib-tushish"],
+  "Трамвай обходят спереди, а автобус — сзади. Так ты видишь, откуда едут машины по соседней полосе.",
+  "Tramvay oldidan, avtobus esa orqasidan aylanib o'tiladi. Shunda yonidagi qatordan mashina qayerdan kelayotganini ko'rasan.");
+KQ(TIP, KP.emo("👫"), "Класс идёт на экскурсию по улице. Как правильно?", "Sinf ko'chada sayohatga ketmoqda. Qanday to'g'ri?",
+  "Парами по тротуару со взрослыми, днём", "Kunduzi kattalar bilan yo'lak bo'ylab juft-juft", ["Толпой по дороге","Бегом наперегонки","Кто как хочет"], ["To'da bo'lib yo'ldan","Poyga qilib yugurib","Kim qanday xohlasa"],
+  "Группы детей водят по тротуару, днём и только со взрослыми. Парами идти удобнее — никто не потеряется.",
+  "Bolalar guruhlari yo'lakdan, kunduzi va faqat kattalar bilan olib yuriladi. Juft yurish qulay — hech kim adashmaydi.");
+KQ(TIP, null, "Друг зовёт тебя с другой стороны дороги: «Беги сюда!» Что сделать?", "Do'sting yo'lning narigi tomonidan chaqiryapti: «Bu yoqqa yugur!» Nima qilasan?",
+  "Дойти до перехода и спокойно перейти", "O'tish joyigacha borib, xotirjam o'tish", ["Сразу побежать к нему","Крикнуть, чтобы он бежал к тебе","Перейти наискосок"], ["Darhol unga yugurish","Unga yugurib kelishini aytib baqirish","Qiya o'tish"],
+  "Даже если зовёт друг, дорога не становится безопаснее. Подожди, дойди до «зебры» и перейди правильно.",
+  "Do'sting chaqirsa ham, yo'l xavfsizroq bo'lib qolmaydi. Shoshma, «zebra»gacha bor va to'g'ri o't.");
+KQ(TIP, null, "Ты идёшь с мамой через дорогу. Как правильно?", "Sen onang bilan yo'ldan o'tyapsan. Qanday to'g'ri?",
+  "Держать маму за руку", "Onamning qo'lidan ushlash", ["Бежать впереди мамы","Идти сзади и смотреть в телефон","Отпустить руку и догонять"], ["Onamdan oldinda yugurish","Orqada telefonga qarab yurish","Qo'lni qo'yib yuborib, quvib yetish"],
+  "За руку со взрослым ты не выбежишь случайно на дорогу. Держись крепко, пока не перешли.",
+  "Kattaning qo'lidan ushlasang, tasodifan yo'lga yugurib chiqmaysan. O'tib bo'lguncha mahkam ushla.");
+KQ(TIP, null, "Машина медленно сдаёт задом во дворе и пищит. Что делать?", "Hovlida mashina sekin orqaga yurib, chiyillamoqda. Nima qilish kerak?",
+  "Отойти подальше в сторону", "Chetga uzoqroq ketish", ["Пройти прямо сзади неё","Постучать по машине","Остаться на месте"], ["To'g'ri orqasidan o'tish","Mashinani taqillatish","Joyida qolish"],
+  "Водитель, едущий задом, плохо видит, что сзади. Особенно маленьких детей.",
+  "Orqaga yurayotgan haydovchi orqasidagini yomon ko'radi. Ayniqsa kichik bolalarni.");
+KQ(TIP, null, "Ты вышел из подъезда, а прямо у двери дорога во дворе. Что сначала?", "Sen podyezddan chiqding, eshik oldida esa hovli yo'li. Avval nima qilasan?",
+  "Остановиться и посмотреть, нет ли машин", "To'xtab, mashina yo'qligiga qarash", ["Сразу выбежать","Закрыть глаза","Побежать к качелям не глядя"], ["Darhol yugurib chiqish","Ko'zni yumish","Qaramay arg'imchoqqa yugurish"],
+  "Во дворе тоже ездят машины. Выходя из подъезда, сначала остановись и осмотрись.",
+  "Hovlida ham mashinalar yuradi. Podyezddan chiqqanda avval to'xta va atrofga qara.");
+KQ("п. 15", null, "Где можно идти, если есть тротуар?", "Yo'lak bo'lsa, qayerdan yurish mumkin?",
+  "Только по тротуару", "Faqat yo'lakdan", ["По краю проезжей части","По трамвайным путям","Где больше места"], ["Qatnov qismi chetidan","Tramvay yo'llaridan","Joy ko'proq joydan"],
+  "Если есть тротуар — иди по нему. Проезжая часть для машин.",
+  "Yo'lak bo'lsa — undan yur. Qatnov qismi mashinalar uchun.");
+KQ(TIP, null, "На тротуаре большая лужа. Как поступить?", "Yo'lakda katta ko'lmak. Qanday yo'l tutasan?",
+  "Обойти лужу по тротуару или подождать", "Ko'lmakni yo'lakdan aylanib o'tish yoki kutish", ["Выйти на дорогу и обойти","Перепрыгнуть с разбегу на дорогу","Пойти по середине дороги"], ["Yo'lga chiqib aylanib o'tish","Yugurib kelib yo'lga sakrash","Yo'l o'rtasidan yurish"],
+  "Лучше промочить ботинки, чем выйти на дорогу перед машиной. Обходи по тротуару.",
+  "Yo'lga mashina oldiga chiqqandan ko'ra poyabzalni ho'llagan yaxshi. Yo'lakdan aylanib o't.");
+KQ(TIP, null, "Ты видишь, что машина едет к «зебре» очень быстро. Что делать?", "Mashina «zebra»ga juda tez kelayotganini ko'ryapsan. Nima qilasan?",
+  "Подождать на тротуаре, пока она проедет", "U o'tib ketguncha yo'lakda kutish", ["Шагнуть — она обязана остановиться","Побежать наперерез","Помахать и идти"], ["Qadam tashlash — u to'xtashi shart","Kesib yugurish","Qo'l silkitib yurish"],
+  "Быстрая машина может не успеть затормозить. Твоя безопасность важнее, чем «кто прав».",
+  "Tez mashina tormozlashga ulgurmasligi mumkin. Sening xavfsizliging «kim haq»dan muhimroq.");
+KQ(TIP, null, "Почему нельзя переходить дорогу наискосок?", "Nega yo'ldan qiya o'tish mumkin emas?",
+  "Путь по дороге длиннее, и машины сзади не видно", "Yo'ldagi yo'l uzunroq va orqadagi mashina ko'rinmaydi", ["Это некрасиво","Так быстрее устают ноги","Можно, это даже лучше"], ["Bu chiroyli emas","Shunda oyoq tez charchaydi","Mumkin, bu hatto yaxshiroq"],
+  "Наискосок ты дольше находишься на дороге и поворачиваешься спиной к машинам. Переходи прямо.",
+  "Qiya o'tsang, yo'lda ko'proq qolasan va mashinalarga orqa o'giribsan. To'g'ri o't.");
+KQ(TIP, KP.emo("🐕"), "Ты гуляешь с собакой рядом с дорогой. Как правильно?", "Yo'l yonida it bilan sayr qilyapsan. Qanday to'g'ri?",
+  "Держать собаку на коротком поводке", "Itni qisqa bog'ichda ushlash", ["Отпустить побегать","Пусть бежит впереди без поводка","Привязать к столбу у дороги"], ["Yugurishi uchun qo'yib yuborish","Bog'ichsiz oldinda yugursin","Yo'l yonidagi ustunga bog'lash"],
+  "Собака может неожиданно выбежать на дорогу, а ты — за ней. Короткий поводок защищает вас обоих.",
+  "It kutilmaganda yo'lga yugurib chiqishi mumkin, sen esa — uning ortidan. Qisqa bog'ich ikkalangizni himoya qiladi.");
+TF("п. 20", null, "Если не успел перейти, можно подождать на островке безопасности.", "Agar o'tishga ulgurmasang, xavfsizlik orolchasida kutish mumkin.", true,
+  "Правильно! Островок безопасности посередине дороги для этого и сделан.",
+  "To'g'ri! Yo'l o'rtasidagi xavfsizlik orolchasi aynan shuning uchun qilingan.");
+TF(TIP, null, "Машина может мгновенно остановиться, как только водитель увидел тебя.", "Haydovchi seni ko'rishi bilanoq mashina darhol to'xtay oladi.", false,
+  "Нет! Тяжёлой машине нужно много метров, чтобы остановиться, особенно на скорости или на мокрой дороге.",
+  "Yo'q! Og'ir mashinaga to'xtash uchun ko'p metr kerak, ayniqsa tezlikda yoki ho'l yo'lda.");
+TF(TIP, null, "Водитель всегда видит маленького ребёнка, который стоит за машиной.", "Haydovchi mashina ortida turgan kichkina bolani doim ko'radi.", false,
+  "Нет! Из-за капота и других машин маленького ребёнка часто совсем не видно.",
+  "Yo'q! Kapot va boshqa mashinalar tufayli kichkina bola ko'pincha umuman ko'rinmaydi.");
+TF("п. 15", null, "Если нет тротуара, идти нужно навстречу машинам.", "Agar yo'lak bo'lmasa, mashinalarga qarshi yurish kerak.", true,
+  "Да! Так ты видишь машины, которые едут к тебе.",
+  "Ha! Shunda senga kelayotgan mashinalarni ko'rasan.");
+TF(TIP, null, "Играть в догонялки у дороги безопасно, если быть осторожным.", "Ehtiyot bo'lsang, yo'l yonida quvlashmachoq o'ynash xavfsiz.", false,
+  "Нет! В игре легко забыть про дорогу и выбежать на неё. Играем на площадке.",
+  "Yo'q! O'yinda yo'lni unutib, unga yugurib chiqish oson. Maydonchada o'ynaymiz.");
+KQ(TIP, null, "На переходе развязался шнурок. Что делать?", "O'tish joyida bog'ich yechilib ketdi. Nima qilasan?",
+  "Дойти до тротуара и там завязать", "Yo'lakkacha borib, o'sha yerda bog'lash", ["Сесть и завязать прямо на дороге","Вернуться бегом назад","Остановиться посередине"], ["Yo'lning o'zida o'tirib bog'lash","Orqaga yugurib qaytish","O'rtada to'xtash"],
+  "На дороге нельзя останавливаться без нужды. Аккуратно дойди до тротуара — там и завяжешь.",
+  "Yo'lda keraksiz to'xtash mumkin emas. Ehtiyotkorlik bilan yo'lakkacha bor — o'sha yerda bog'laysan.");
+
+// ---------- ЗНАКИ ----------
+KQ("знак «Пешеходный переход»", KP.crossing, "Ты ищешь место, чтобы перейти дорогу. Какой знак тебе поможет?", "Yo'ldan o'tish uchun joy qidiryapsan. Qaysi belgi yordam beradi?",
+  "Вот этот — «Пешеходный переход»", "Mana bu — «Piyodalar o'tish joyi»", ["Красный треугольник с детьми","Синий круг с велосипедом","Красный круг с человечком"], ["Bolalar tasvirlangan qizil uchburchak","Velosipedli ko'k doira","Odamchali qizil doira"],
+  "Синий квадрат с белым треугольником и шагающим человечком показывает переход.",
+  "Oq uchburchak va yurayotgan odamchali ko'k kvadrat o'tish joyini ko'rsatadi.");
+KQ("знак «Дети»", KP.kids, "Около какого места чаще всего ставят этот знак?", "Bu belgi ko'pincha qaysi joy yoniga qo'yiladi?",
+  "У школы или детского сада", "Maktab yoki bog'cha yonida", ["У заправки","На автомагистрали","У аэропорта"], ["Yoqilg'i quyish shoxobchasi yonida","Avtomagistralda","Aeroport yonida"],
+  "Знак «Дети» предупреждает водителей: рядом школа или площадка, нужно ехать медленно.",
+  "«Bolalar» belgisi haydovchilarni ogohlantiradi: yaqinda maktab yoki maydoncha, sekin yurish kerak.");
+KQ(TIP, KP.noPed, "Какого цвета обычно запрещающие знаки?", "Taqiqlovchi belgilar odatda qanday rangda bo'ladi?",
+  "С красной каймой", "Qizil hoshiyali", ["Зелёные","Полностью синие","Фиолетовые"], ["Yashil","Butunlay ko'k","Binafsha"],
+  "Красный круг означает «нельзя». А синий круг — «так нужно».",
+  "Qizil doira «mumkin emas»ni bildiradi. Ko'k doira esa — «shunday kerak».");
+KQ(TIP, KP.pedPath, "Синий круг с белым рисунком — это...", "Oq rasmli ko'k doira — bu...",
+  "Знак, который говорит, что здесь нужно делать", "Bu yerda nima qilish kerakligini aytadigan belgi", ["Знак запрета","Реклама","Украшение"], ["Taqiq belgisi","Reklama","Bezak"],
+  "Синие круглые знаки — «предписывающие»: они показывают, кому и куда можно двигаться.",
+  "Ko'k dumaloq belgilar — «buyuruvchi»: kim qayerga yurishi mumkinligini ko'rsatadi.");
+KQ(TIP, KP.kids, "Красный треугольник — что он говорит водителю?", "Qizil uchburchak haydovchiga nima deydi?",
+  "Внимание, впереди опасность", "Diqqat, oldinda xavf", ["Здесь можно ехать быстро","Здесь магазин","Здесь стоянка"], ["Bu yerda tez yursa bo'ladi","Bu yerda do'kon","Bu yerda to'xtash joyi"],
+  "Треугольные знаки — «предупреждающие». Они говорят: впереди что-то опасное, будь внимателен.",
+  "Uchburchak belgilar — «ogohlantiruvchi». Ular deydi: oldinda xavfli narsa, ehtiyot bo'l.");
+KQ("знак «Велосипедная дорожка»", KP.bike, "Где лучше всего кататься на велосипеде?", "Velosipedni qayerda haydagan eng yaxshi?",
+  "На велосипедной дорожке с таким знаком", "Shunday belgili velosiped yo'lagida", ["По проезжей части среди машин","По пешеходному переходу","По трамвайным путям"], ["Mashinalar orasida qatnov qismida","Piyodalar o'tish joyida","Tramvay yo'llarida"],
+  "Велосипедная дорожка — специальное место, где нет машин.",
+  "Velosiped yo'lagi — mashina yo'q maxsus joy.");
+KQ("знак «Движение пешеходов запрещено»", KP.noPed, "Ты видишь этот знак на своём пути. Что делать?", "Yo'lingda shu belgini ko'ryapsan. Nima qilasan?",
+  "Найти другую дорогу", "Boshqa yo'l topish", ["Пройти быстро, пока никто не видит","Пройти задом наперёд","Пройти, если с другом"], ["Hech kim ko'rmayotganda tez o'tish","Teskari yurib o'tish","Do'st bilan bo'lsa, o'tish"],
+  "Знак запрещает идти. Значит, там опасно для пешеходов — ищи другой путь.",
+  "Belgi yurishni taqiqlaydi. Demak, u yer piyodalar uchun xavfli — boshqa yo'l izla.");
+TF(TIP, KP.crossing, "Знак «Пешеходный переход» — синий квадрат.", "«Piyodalar o'tish joyi» belgisi — ko'k kvadrat.", true,
+  "Да! Синий квадрат с белым треугольником и человечком.",
+  "Ha! Oq uchburchak va odamchali ko'k kvadrat.");
+
+// ---------- ТРАНСПОРТ И ПАССАЖИРЫ ----------
+KQ("п. 22", KP.emo("🚌"), "Автобус подъезжает к остановке. Когда подходить к двери?", "Avtobus bekatga yaqinlashmoqda. Eshikka qachon borish kerak?",
+  "Когда он полностью остановится", "U to'liq to'xtaganda", ["Пока он ещё едет — займёшь место","Выбежать ему навстречу","Когда двери начинают закрываться"], ["Hali ketayotganda — joy olasan","Unga qarshi yugurib chiqish","Eshiklar yopila boshlaganda"],
+  "Подходи к автобусу только после полной остановки. Около колёс движущегося автобуса очень опасно.",
+  "Avtobusga faqat to'liq to'xtagandan keyin bor. Harakatlanayotgan avtobus g'ildiraklari yonida juda xavfli.");
+KQ(TIP, KP.emo("🚌"), "Ты едешь в автобусе стоя. Как правильно?", "Avtobusda tik turib ketyapsan. Qanday to'g'ri?",
+  "Крепко держаться за поручень", "Tutqichdan mahkam ushlash", ["Стоять без рук, как серфер","Прыгать","Стоять у двери и опираться на неё"], ["Serferdek qo'lsiz turish","Sakrash","Eshik oldida turib, unga suyanish"],
+  "Автобус может резко затормозить. Держись за поручень и не опирайся на двери.",
+  "Avtobus keskin tormozlashi mumkin. Tutqichdan ushla va eshikka suyanma.");
+KQ("п. 24", KP.emo("🚗"), "Можно ли высовывать голову из окна машины во время езды?", "Mashina ketayotganda derazadan boshni chiqarish mumkinmi?",
+  "Нет, это опасно", "Yo'q, bu xavfli", ["Да, если ветерок","Да, чтобы помахать друзьям","Да, если едем медленно"], ["Ha, shabada bo'lsa","Ha, do'stlarga qo'l silkitish uchun","Ha, sekin ketayotgan bo'lsak"],
+  "Мимо проезжают машины, столбы и ветки. Пассажирам нельзя высовываться из окна.",
+  "Yonidan mashinalar, ustunlar va shoxlar o'tadi. Yo'lovchilarga derazadan engashish mumkin emas.");
+KQ("п. 24", KP.emo("🚗"), "Ты едешь в машине и хочешь показать папе-водителю рисунок. Когда?", "Mashinada ketyapsan va haydovchi dadangga rasm ko'rsatmoqchisan. Qachon?",
+  "Когда машина остановится", "Mashina to'xtaganda", ["Сразу, пока он ведёт машину","Закрыть ему глаза рисунком","Покричать громко"], ["Darhol, u haydayotganda","Rasm bilan ko'zini yopish","Baland baqirish"],
+  "Отвлекать водителя опасно: он должен смотреть на дорогу. Покажешь, когда приедете.",
+  "Haydovchini chalg'itish xavfli: u yo'lga qarashi kerak. Yetib borganingizda ko'rsatasan.");
+KQ(TIP, KP.emo("🧒"), "Зачем детям детское кресло в машине?", "Bolalarga mashinada bolalar o'rindig'i nima uchun kerak?",
+  "Чтобы ремень правильно держал ребёнка при торможении", "Tormozlanganda kamar bolani to'g'ri ushlab turishi uchun", ["Чтобы было выше смотреть мультики","Для красоты","Чтобы ребёнок не баловался"], ["Multfilm ko'rish uchun balandroq bo'lsin","Chiroy uchun","Bola sho'xlik qilmasligi uchun"],
+  "Взрослый ремень ребёнку не подходит — он может давить на шею. Кресло делает ремень безопасным.",
+  "Kattalar kamari bolaga mos emas — bo'yniga bosishi mumkin. O'rindiq kamarni xavfsiz qiladi.");
+KQ(TIP, KP.emo("🏍️"), "С какого возраста ребёнка можно катать на заднем сиденье мотоцикла?", "Bolani mototsiklning orqa o'rindig'ida necha yoshdan olib yurish mumkin?",
+  "С 12 лет", "12 yoshdan", ["С 5 лет","С любого, если держится","С 8 лет"], ["5 yoshdan","Ushlab tursa, istalgan yoshdan","8 yoshdan"],
+  "Детей до 12 лет на заднем сиденье мотоцикла, мопеда и скутера возить нельзя.",
+  "12 yoshgacha bolalarni mototsikl, moped va skuterning orqa o'rindig'ida olib yurish mumkin emas.");
+KQ(TIP, KP.emo("🚚"), "Можно ли детям кататься в кузове грузовика?", "Bolalarga yuk mashinasi kuzovida yurish mumkinmi?",
+  "Нет, никогда", "Yo'q, hech qachon", ["Да, если держаться","Да, по деревне","Да, если сидеть на полу"], ["Ha, ushlab tursa","Ha, qishloqda","Ha, polda o'tirsa"],
+  "Перевозить детей в кузове грузового автомобиля запрещено — там нет ни кресел, ни ремней.",
+  "Yuk avtomobili kuzovida bolalarni tashish taqiqlangan — u yerda na o'rindiq, na kamar bor.");
+KQ("п. 23", KP.emo("🚕"), "Такси остановилось. С какой стороны тебе выходить?", "Taksi to'xtadi. Qaysi tomondan tushasan?",
+  "Со стороны тротуара", "Yo'lak tomonidan", ["С той стороны, где ближе","Со стороны дороги","Через окно"], ["Qaysi tomon yaqin bo'lsa","Yo'l tomonidan","Derazadan"],
+  "Со стороны дороги могут проезжать машины. Выходи на тротуар.",
+  "Yo'l tomonidan mashinalar o'tishi mumkin. Yo'lakka tush.");
+KQ(TIP, KP.emo("🚗"), "Как проверить, можно ли открыть дверь машины, когда выходишь?", "Mashinadan tushayotganda eshikni ochish mumkinligini qanday tekshirasan?",
+  "Посмотреть назад — не едет ли велосипедист или машина", "Orqaga qarash — velosipedchi yoki mashina kelmayaptimi", ["Открыть резко и широко","Открыть ногой","Не смотреть — двери прочные"], ["Keskin va keng ochish","Oyoq bilan ochish","Qaramaslik — eshiklar mustahkam"],
+  "Внезапно открытая дверь может сбить велосипедиста. Сначала посмотри назад, потом открывай понемногу.",
+  "To'satdan ochilgan eshik velosipedchini urib yuborishi mumkin. Avval orqaga qara, keyin asta och.");
+TF("п. 24", KP.emo("🚌"), "В автобусе можно бегать, пока он едет.", "Avtobus ketayotganda unda yugurish mumkin.", false,
+  "Нет! При торможении легко упасть и удариться. Сиди или держись за поручень.",
+  "Yo'q! Tormozlanganda yiqilib, urilib qolish oson. O'tir yoki tutqichdan ushla.");
+TF(TIP, KP.emo("🚗"), "В машине лучше пристёгиваться, даже если едем близко.", "Yaqin joyga ketayotgan bo'lsak ham, mashinada kamar taqqan yaxshi.", true,
+  "Да! Большинство аварий бывает недалеко от дома. Ремень — это 2 секунды, а защищает всю поездку.",
+  "Ha! Avariyalarning ko'pi uyga yaqin joyda bo'ladi. Kamar — 2 soniya, lekin butun yo'lda himoya qiladi.");
+TF("п. 23", null, "Выходить из машины можно, пока она ещё немного едет.", "Mashina hali biroz ketayotganda tushish mumkin.", false,
+  "Нет! Выходить можно только после полной остановки.",
+  "Yo'q! Faqat to'liq to'xtagandan keyin tushish mumkin.");
+KQ(TIP, KP.emo("🚌"), "Ты ждёшь автобус, а он ещё далеко. Где стоять?", "Avtobusni kutyapsan, u hali uzoqda. Qayerda turish kerak?",
+  "Подальше от края тротуара", "Yo'lak chetidan uzoqroqda", ["На самом краю бордюра","На проезжей части","На ступеньках у дороги, свесив ноги"], ["Bordyurning eng chetida","Qatnov qismida","Oyoqlarni osiltirib yo'l yonidagi zinada"],
+  "Подъезжающий автобус большой, его бок или зеркало может задеть стоящего на краю.",
+  "Yaqinlashayotgan avtobus katta, uning yoni yoki ko'zgusi chetda turganga tegib ketishi mumkin.");
+KQ(TIP, KP.emo("🚌"), "Ты проехал свою остановку. Что делать?", "Bekatingdan o'tib ketding. Nima qilasan?",
+  "Выйти на следующей остановке и вернуться по тротуару", "Keyingi bekatda tushib, yo'lak bo'ylab qaytish", ["Попросить открыть дверь на ходу","Выпрыгнуть","Заплакать и ничего не делать"], ["Harakatlanayotganda eshikni ochishni so'rash","Sakrab tushish","Yig'lab, hech narsa qilmaslik"],
+  "Ничего страшного! Выйди на следующей остановке, а если потерялся — позвони родителям.",
+  "Hech qisi yo'q! Keyingi bekatda tush, adashsang — ota-onangga qo'ng'iroq qil.");
+
+// ---------- ВЕЛОСИПЕД И САМОКАТ ----------
+KQ(TIP, KP.emo("🛴"), "С какого возраста можно кататься на электросамокате по дороге?", "Necha yoshdan yo'lda elektrosamokat haydash mumkin?",
+  "Не раньше 14 лет, и лучше не по проезжей части", "14 yoshdan oldin emas, yaxshisi qatnov qismida emas", ["С 6 лет","С 10 лет","Без ограничений"], ["6 yoshdan","10 yoshdan","Cheklovsiz"],
+  "Электросамокат разгоняется как велосипед, а то и быстрее. Маленьким детям на дороге на нём ездить нельзя.",
+  "Elektrosamokat velosipeddek, hatto undan ham tez yuradi. Kichik bolalarga yo'lda unda yurish mumkin emas.");
+KQ(TIP, KP.emo("🛴"), "Ты едешь на самокате и подъехал к «зебре». Как перейти?", "Samokatda kelyapsan va «zebra»ga yetding. Qanday o'tasan?",
+  "Слезть и вести самокат рядом", "Tushib, samokatni yonda yetaklash", ["Проехать быстро","Проехать по краю «зебры»","Оттолкнуться и катиться"], ["Tez minib o'tish","«Zebra» chetidan minib o'tish","Itarib, sirpanib o'tish"],
+  "Через переход на самокате и велосипеде не едут — их переводят, как пешеходы.",
+  "O'tish joyidan samokat va velosipedda minib o'tilmaydi — ularni piyodadek olib o'tiladi.");
+KQ(TIP, KP.emo("🚲"), "Можно ли покатать младшего братика на багажнике велосипеда?", "Ukangni velosiped bagajnigida olib yursa bo'ladimi?",
+  "Нет — только малыша в специальном детском сиденье", "Yo'q — faqat maxsus bolalar o'rindig'idagi kichkintoyni", ["Да, если он лёгкий","Да, если держится","Да, на раме"], ["Ha, yengil bo'lsa","Ha, ushlab tursa","Ha, ramada"],
+  "Велосипедистам нельзя возить людей. Исключение — малыш в специальном сиденье с подножками.",
+  "Velosipedchilarga odam tashish mumkin emas. Istisno — oyoq tayanchli maxsus o'rindiqdagi kichkintoy.");
+KQ(TIP, KP.emo("🚲"), "Можно ли ехать на велосипеде, не держась за руль?", "Rulni ushlamay velosipedda yursa bo'ladimi?",
+  "Нет, хотя бы одна рука — на руле", "Yo'q, hech bo'lmasa bir qo'l — rulda", ["Да, это круто","Да, если дорога ровная","Да, с горки"], ["Ha, bu zo'r","Ha, yo'l tekis bo'lsa","Ha, tepalikdan"],
+  "Без рук велосипед не удержать при ямке или резком повороте. Держи руль!",
+  "Qo'lsiz chuqurchada yoki keskin burilishda velosipedni ushlab bo'lmaydi. Rulni ushla!");
+KQ(TIP, KP.emo("🚲"), "Перед поездкой на велосипеде что стоит проверить?", "Velosipedda yurishdan oldin nimani tekshirish kerak?",
+  "Тормоза, звонок и шины", "Tormoz, qo'ng'iroq va shinalar", ["Цвет велосипеда","Сколько он стоит","Ничего"], ["Velosiped rangi","Uning narxi","Hech narsa"],
+  "Если тормоза не работают, остановиться не получится. Проверь их перед каждой поездкой.",
+  "Tormoz ishlamasa, to'xtab bo'lmaydi. Har safar yurishdan oldin tekshir.");
+KQ(TIP, KP.emo("🔔"), "Зачем велосипеду звонок?", "Velosipedga qo'ng'iroq nima uchun kerak?",
+  "Чтобы предупредить пешеходов, что ты едешь", "Piyodalarni kelayotganing haqida ogohlantirish uchun", ["Чтобы играть музыку","Для красоты","Чтобы пугать собак"], ["Musiqa chalish uchun","Chiroy uchun","Itlarni qo'rqitish uchun"],
+  "Звонок вежливо говорит «осторожно, я еду». Но ехать всё равно нужно медленно рядом с людьми.",
+  "Qo'ng'iroq odob bilan «ehtiyot bo'ling, kelyapman» deydi. Lekin odamlar yonida baribir sekin yurish kerak.");
+KQ(TIP, KP.emo("🚲"), "Ты катаешься с другом на велосипедах по велодорожке. Как ехать?", "Do'sting bilan velosiped yo'lagida ketyapsan. Qanday yurasizlar?",
+  "Друг за другом", "Birin-ketin", ["Рядом, держась за руки","Наперегонки зигзагом","Друг навстречу другу"], ["Qo'l ushlashib yonma-yon","Ilon izi bilan poyga","Bir-biringizga qarshi"],
+  "Велосипедисты едут в один ряд. Держась за руки, легко упасть вдвоём.",
+  "Velosipedchilar bir qatorda yuradi. Qo'l ushlashib yursang, ikkalang yiqilishing oson.");
+KQ(TIP, KP.emo("⛰️"), "Ты на велосипеде, впереди крутой спуск. Как поступить?", "Velosipeddasan, oldinda tik nishab. Qanday yo'l tutasan?",
+  "Ехать медленно, притормаживая, или свести велосипед", "Tormozlab sekin yurish yoki velosipedni yetaklab tushish", ["Разогнаться на полную","Отпустить руль","Закрыть глаза"], ["To'liq tezlikda yurish","Rulni qo'yib yuborish","Ko'zni yumish"],
+  "На спуске велосипед быстро разгоняется. Если страшно — сойди и сведи его вниз пешком.",
+  "Nishabda velosiped tez tezlashadi. Qo'rqsang — tush va uni piyoda olib tush.");
+KQ(TIP, KP.emo("🛹"), "Где можно кататься на роликах и скейте?", "Rolik va skeytda qayerda uchish mumkin?",
+  "В парке, на площадке, во дворе без машин", "Bog'da, maydonchada, mashinasiz hovlida", ["По проезжей части","По «зебре» наперегонки","Цепляясь за машину"], ["Qatnov qismida","«Zebra»da poyga qilib","Mashinaga osilib"],
+  "Ролики и скейт — не транспорт для дороги. Катайся там, где нет машин.",
+  "Rolik va skeyt — yo'l uchun transport emas. Mashina yo'q joyda uch.");
+KQ(TIP, KP.emo("🪖"), "Ты упал с велосипеда в шлеме и ударился головой. Что сделал шлем?", "Shlemda velosipeddan yiqilib, boshing urildi. Shlem nima qildi?",
+  "Защитил голову от сильного удара", "Boshni kuchli zarbadan himoya qildi", ["Ничего","Помешал","Сделал падение больнее"], ["Hech narsa","Xalaqit berdi","Yiqilishni og'riqliroq qildi"],
+  "Шлем принимает удар на себя. Но после сильного удара его стоит заменить и показаться врачу.",
+  "Shlem zarbani o'ziga oladi. Lekin kuchli zarbadan keyin uni almashtirish va shifokorga ko'rinish kerak.");
+TF(TIP, KP.emo("🚲"), "В 10 лет можно ездить на велосипеде по проезжей части.", "10 yoshda qatnov qismida velosiped haydash mumkin.", false,
+  "Нет! По дорогам на велосипеде — с 14 лет. А пока — двор, парк, велодорожки.",
+  "Yo'q! Yo'llarda velosipedda — 14 yoshdan. Hozircha — hovli, bog', velosiped yo'laklari.");
+TF(TIP, KP.emo("🪖"), "Шлем нужен, даже если катаешься недолго.", "Qisqa vaqt uchsang ham shlem kerak.", true,
+  "Да! Упасть можно в первую же минуту.",
+  "Ha! Birinchi daqiqadayoq yiqilish mumkin.");
+TF(TIP, KP.emo("🚲"), "На велосипеде можно возить друга на раме.", "Velosipedda do'stni ramada olib yursa bo'ladi.", false,
+  "Нет! Велосипед рассчитан на одного. С пассажиром его трудно удержать и тормозить.",
+  "Yo'q! Velosiped bir kishiga mo'ljallangan. Yo'lovchi bilan uni boshqarish va tormozlash qiyin.");
+KQ(TIP, KP.emo("🎧"), "Можно ли кататься на велосипеде в наушниках?", "Quloqchinda velosiped haydash mumkinmi?",
+  "Лучше не надо — не услышишь машину и сигнал", "Kerak emas — mashina va signalni eshitmaysan", ["Да, с музыкой веселее","Да, если громко","Да, по дороге"], ["Ha, musiqa bilan qiziqroq","Ha, baland bo'lsa","Ha, yo'lda"],
+  "Уши помогают заметить опасность раньше глаз: машину сзади, звонок, крик.",
+  "Quloqlar xavfni ko'zdan oldin payqashga yordam beradi: orqadagi mashina, qo'ng'iroq, baqiriq.");
+KQ(TIP, KP.emo("🛴"), "На самокате по тротуару навстречу идёт бабушка. Что делать?", "Yo'lakda samokatda ketyapsan, qarshingdan buvi kelmoqda. Nima qilasan?",
+  "Сбавить скорость или остановиться и пропустить", "Tezlikni pasaytirish yoki to'xtab o'tkazish", ["Объехать на большой скорости","Позвонить и не тормозить","Проскочить рядом"], ["Katta tezlikda aylanib o'tish","Qo'ng'iroq chalib tormozlamaslik","Yonidan tez o'tib ketish"],
+  "На тротуаре главные — пешеходы. Самокат должен уступать им.",
+  "Yo'lakda piyodalar asosiy. Samokat ularga yo'l berishi kerak.");
+
+// ---------- ДВОР, ИГРЫ, ПОГОДА, ТЕМНОТА ----------
+KQ(TIP, KP.emo("❄️"), "Зимой дорога скользкая. Почему переходить надо ещё осторожнее?", "Qishda yo'l sirpanchiq. Nega yanada ehtiyot bo'lib o'tish kerak?",
+  "Машине труднее затормозить, а ты можешь поскользнуться", "Mashinaga tormozlash qiyinroq, sen esa sirpanib ketishing mumkin", ["Зимой машин нет","Снег мягкий, не страшно","Зимой всё можно"], ["Qishda mashina yo'q","Qor yumshoq, qo'rqinchli emas","Qishda hammasi mumkin"],
+  "На льду машина тормозит гораздо дольше. Переходи спокойно, не беги.",
+  "Muzda mashina ancha uzoqroq tormozlaydi. Yugurmay, xotirjam o't.");
+KQ(TIP, KP.emo("☃️"), "Можно ли кататься на санках с горки, которая выходит на дорогу?", "Yo'lga chiqadigan tepalikdan chanada uchsa bo'ladimi?",
+  "Нет, нужна горка подальше от дороги", "Yo'q, yo'ldan uzoqroqdagi tepalik kerak", ["Да, если быстро","Да, если смотреть","Да, вечером"], ["Ha, tez bo'lsa","Ha, qarab tursa","Ha, kechqurun"],
+  "Санки трудно остановить — можно выкатиться прямо под машину.",
+  "Chanani to'xtatish qiyin — to'g'ri mashina ostiga sirpanib chiqish mumkin.");
+KQ(TIP, KP.emo("🌫️"), "На улице туман. Что сделать, чтобы тебя видели?", "Ko'chada tuman. Seni ko'rishlari uchun nima qilish kerak?",
+  "Надеть яркую одежду и светоотражатели", "Yorqin kiyim va nur qaytargichlarni kiyish", ["Надеть серую куртку","Идти быстрее","Ничего, туман не мешает"], ["Kulrang kurtka kiyish","Tezroq yurish","Hech narsa, tuman xalaqit bermaydi"],
+  "В тумане водитель видит недалеко. Яркое и светоотражающее заметно лучше.",
+  "Tumanda haydovchi uzoqni ko'rmaydi. Yorqin va nur qaytaruvchi narsalar yaxshiroq ko'rinadi.");
+KQ(TIP, KP.emo("🌙"), "Какого цвета одежду ночью водитель видит хуже всего?", "Kechasi haydovchi qaysi rangdagi kiyimni eng yomon ko'radi?",
+  "Чёрную и тёмную", "Qora va to'q rangli", ["Белую","Жёлтую","Со светоотражателями"], ["Oq","Sariq","Nur qaytargichli"],
+  "Тёмную одежду ночью видно всего за несколько метров. Добавь фликер — и тебя заметят издалека.",
+  "Qorong'i kiyim kechasi bir necha metrdan ko'rinadi. Fliker qo'sh — seni uzoqdan payqashadi.");
+KQ(TIP, KP.emo("🎈"), "Шарик улетел и упал на дорогу. Что делать?", "Shar uchib ketib, yo'lga tushdi. Nima qilasan?",
+  "Попросить взрослого, а не бежать самому", "O'zing yugurmay, kattadan so'rash", ["Быстро сбегать","Попросить друга сбегать","Лечь на тротуар и тянуться"], ["Tez yugurib borish","Do'stdan yugurib kelishini so'rash","Yo'lakka yotib cho'zilish"],
+  "Никакая игрушка не стоит того, чтобы выбегать на дорогу. Взрослый решит, можно ли её достать.",
+  "Hech qanday o'yinchoq yo'lga yugurib chiqishga arzimaydi. Katta uni olish mumkinmi, o'zi hal qiladi.");
+KQ(TIP, KP.emo("🅿️"), "Можно ли прятаться за машинами на парковке, играя в прятки?", "Bekinmachoq o'ynab, to'xtash joyidagi mashinalar ortiga bekinish mumkinmi?",
+  "Нет, водитель может не увидеть и поехать", "Yo'q, haydovchi ko'rmay, yurib ketishi mumkin", ["Да, это лучшее место","Да, если машина красивая","Да, под машиной"], ["Ha, bu eng yaxshi joy","Ha, mashina chiroyli bo'lsa","Ha, mashina ostida"],
+  "Водитель садится и едет, не зная, что за машиной кто-то есть. Прячемся на площадке.",
+  "Haydovchi mashina ortida kimdir borligini bilmay o'tirib, yurib ketadi. Maydonchada bekinamiz.");
+KQ(TIP, KP.emo("🧱"), "Почему нельзя кидать камешки на дорогу?", "Nega yo'lga tosh otish mumkin emas?",
+  "Можно разбить стекло и напугать водителя — будет авария", "Oynani sindirib, haydovchini qo'rqitish mumkin — avariya bo'ladi", ["Можно, это весело","Можно, если маленькие","Можно в грузовики"], ["Mumkin, bu qiziq","Mumkin, kichkina bo'lsa","Yuk mashinalariga mumkin"],
+  "Даже маленький камень на скорости может разбить стекло. Испуганный водитель может не справиться с машиной.",
+  "Hatto kichkina tosh ham tezlikda oynani sindirishi mumkin. Qo'rqqan haydovchi mashinani boshqara olmay qolishi mumkin.");
+KQ(TIP, KP.emo("🚧"), "На улице идут дорожные работы и стоит ограждение. Как идти?", "Ko'chada yo'l ishlari ketmoqda va to'siq turibdi. Qanday yuriladi?",
+  "Обойти по тротуару или специальному проходу", "Yo'lak yoki maxsus o'tish joyi bo'ylab aylanib o'tish", ["Пролезть через ограждение","Посмотреть поближе на технику","Попрыгать на песке"], ["To'siqdan oshib o'tish","Texnikani yaqindan tomosha qilish","Qumda sakrash"],
+  "Возле техники опасно: водитель экскаватора тебя может не увидеть.",
+  "Texnika yonida xavfli: ekskavator haydovchisi seni ko'rmasligi mumkin.");
+KQ(TIP, KP.emo("🏃"), "Ты опаздываешь в школу. Как поступить на дороге?", "Maktabga kechikyapsan. Yo'lda qanday yo'l tutasan?",
+  "Всё равно переходить по правилам", "Baribir qoidaga ko'ra o'tish", ["Перебежать на красный","Срезать через дорогу","Бежать не глядя"], ["Qizilda yugurib o'tish","Yo'l orqali qisqartirish","Qaramay yugurish"],
+  "Спешка — главная причина ошибок на дороге. Лучше выйти из дома пораньше.",
+  "Shoshilish — yo'ldagi xatolarning asosiy sababi. Uydan ertaroq chiqqan yaxshi.");
+TF(TIP, KP.emo("🌙"), "Фликер на рюкзаке помогает водителю увидеть тебя в темноте.", "Ryukzakdagi fliker haydovchiga seni qorong'ida ko'rishga yordam beradi.", true,
+  "Да! Он отражает свет фар и виден издалека.",
+  "Ha! U fara nurini qaytaradi va uzoqdan ko'rinadi.");
+TF(TIP, KP.emo("🅿️"), "На парковке безопасно бегать, потому что машины стоят.", "To'xtash joyida yugurish xavfsiz, chunki mashinalar turibdi.", false,
+  "Нет! Любая машина может начать движение, особенно задом.",
+  "Yo'q! Istalgan mashina, ayniqsa orqaga, yura boshlashi mumkin.");
+KQ(TIP, KP.emo("🌳"), "Ты гуляешь в парке рядом с дорогой. Куда нельзя заходить?", "Yo'l yonidagi bog'da sayr qilyapsan. Qayerga kirish mumkin emas?",
+  "На проезжую часть", "Qatnov qismiga", ["На дорожку в парке","На площадку","На скамейку"], ["Bog'dagi yo'lakchaga","Maydonchaga","Skameykaga"],
+  "Парк — твоя территория для игр. Проезжая часть — для машин.",
+  "Bog' — o'yin uchun sening hududing. Qatnov qismi — mashinalar uchun.");
+
+// ---------- ЭКСТРЕННЫЕ СЛУЧАИ ----------
+KQ(TIP, KP.emo("☎️"), "Ты увидел аварию, и человеку плохо. Что сделать в первую очередь?", "Avariyani ko'rding va odamning ahvoli yomon. Birinchi navbatda nima qilasan?",
+  "Позвать взрослых и попросить вызвать скорую — 103", "Kattalarni chaqirib, tez yordamni — 103 ni chaqirishni so'rash", ["Убежать","Снять на телефон","Сам лезть на дорогу помогать"], ["Qochib ketish","Telefonga olish","O'zing yo'lga chiqib yordam berish"],
+  "Ребёнку на дороге у аварии опасно. Правильнее всего — позвать взрослых и помочь вызвать скорую.",
+  "Avariya yonida yo'lda bolaga xavfli. Eng to'g'risi — kattalarni chaqirish va tez yordamni chaqirishga yordam berish.");
+KQ(RID, KP.emo("👮"), "По какому номеру можно позвонить в полицию?", "Politsiyaga qaysi raqamga qo'ng'iroq qilish mumkin?",
+  "102", "102", ["101","103","100"], ["101","103","100"],
+  "101 — пожарные, 102 — полиция, 103 — скорая.",
+  "101 — o't o'chiruvchilar, 102 — politsiya, 103 — tez yordam.");
+KQ(TIP, KP.emo("😢"), "Ты потерялся на улице. Что делать?", "Ko'chada adashib qolding. Nima qilasan?",
+  "Стоять на месте и обратиться к полицейскому или продавцу в магазине", "Joyida turib, politsiyachi yoki do'kon sotuvchisiga murojaat qilish", ["Перебегать дороги в поисках","Уйти с незнакомцем","Сесть в любой автобус"], ["Qidirib yo'llardan yugurib o'tish","Notanish odam bilan ketish","Istalgan avtobusga chiqish"],
+  "Родители будут искать тебя там, где потеряли. Не уходи далеко и не садись в чужие машины.",
+  "Ota-onang seni yo'qotgan joyda qidiradi. Uzoqqa ketma va begona mashinalarga o'tirma.");
+KQ(TIP, KP.emo("🚗"), "Незнакомец из машины предлагает тебя подвезти. Что делать?", "Notanish odam mashinadan seni olib borishni taklif qilyapti. Nima qilasan?",
+  "Отказаться, отойти и рассказать взрослым", "Rad etib, uzoqlashib, kattalarga aytib berish", ["Сесть, если он вежливый","Сесть, если он даёт конфету","Подойти поближе к машине"], ["Xushmuomala bo'lsa, o'tirish","Konfet bersa, o'tirish","Mashinaga yaqinroq borish"],
+  "В чужую машину садиться нельзя, даже если человек добрый. Отойди подальше и скажи родителям.",
+  "Begona mashinaga o'tirish mumkin emas, odam mehribon bo'lsa ham. Uzoqroq ket va ota-onangga ayt.");
+TF(TIP, KP.emo("📞"), "Номер скорой помощи — 103.", "Tez yordam raqami — 103.", true,
+  "Да! Запомни: 101 — пожарные, 102 — полиция, 103 — скорая.",
+  "Ha! Eslab qol: 101 — o't o'chiruvchilar, 102 — politsiya, 103 — tez yordam.");
+
+// ---------- ВОДИТЕЛИ И ДОРОГА (интересные факты) ----------
+KQ(TIP, KP.emo("🚗"), "Почему машине нужно время, чтобы остановиться?", "Nega mashinaga to'xtash uchun vaqt kerak?",
+  "Она тяжёлая и катится по инерции", "U og'ir va inersiya bilan yuradi", ["Водитель ленится","Тормоза медленные специально","Машине так нравится"], ["Haydovchi dangasa","Tormozlar ataylab sekin","Mashinaga shunday yoqadi"],
+  "Машина весит больше тонны. Даже когда водитель жмёт тормоз, она ещё проезжает несколько метров.",
+  "Mashina bir tonnadan og'ir. Haydovchi tormozni bossa ham, u yana bir necha metr yuradi.");
+KQ(TIP, KP.emo("🚛"), "Почему опасно стоять рядом с большим грузовиком, который поворачивает?", "Nega burilayotgan katta yuk mashinasi yonida turish xavfli?",
+  "Водитель грузовика может тебя не видеть", "Yuk mashinasi haydovchisi seni ko'rmasligi mumkin", ["Грузовик громко гудит","Он пахнет","Ничего опасного"], ["Yuk mashinasi baland signal chaladi","Undan hid keladi","Hech qanday xavf yo'q"],
+  "У грузовика есть «слепые зоны» — места, которые водитель не видит в зеркала. Держись подальше.",
+  "Yuk mashinasida «ko'r zonalar» bor — haydovchi ko'zgularda ko'rmaydigan joylar. Uzoqroq tur.");
+KQ(TIP, KP.emo("🔊"), "Машина посигналила тебе. Что это значит?", "Mashina senga signal berdi. Bu nimani bildiradi?",
+  "Водитель предупреждает об опасности — нужно остановиться и осмотреться", "Haydovchi xavf haqida ogohlantirmoqda — to'xtab, atrofga qarash kerak", ["Он здоровается","Он зовёт поиграть","Можно не обращать внимания"], ["U salomlashmoqda","U o'ynashga chaqirmoqda","E'tibor bermasa bo'ladi"],
+  "В городе водителям можно сигналить, только чтобы предотвратить аварию. Значит, ты в опасности!",
+  "Shaharda haydovchilarga faqat avariyaning oldini olish uchun signal berish mumkin. Demak, sen xavfdasan!");
+KQ(TIP, KP.emo("🏫"), "Как должны ехать машины возле школы?", "Maktab yonida mashinalar qanday yurishi kerak?",
+  "Медленно и очень внимательно", "Sekin va juda diqqat bilan", ["Как можно быстрее","С музыкой погромче","Сигналя без остановки"], ["Iloji boricha tez","Musiqani balandlatib","To'xtovsiz signal chalib"],
+  "Возле школы ставят знак «Дети»: водители должны снизить скорость и быть готовы остановиться.",
+  "Maktab yonida «Bolalar» belgisi qo'yiladi: haydovchilar tezlikni pasaytirib, to'xtashga tayyor bo'lishi kerak.");
+KQ(TIP, KP.emo("🏠"), "Как машины должны ездить во дворе?", "Hovlida mashinalar qanday yurishi kerak?",
+  "Очень медленно — там гуляют дети", "Juda sekin — u yerda bolalar sayr qiladi", ["Как на трассе","Наперегонки","Задом на скорости"], ["Trassadagidek","Poyga qilib","Tezlikda orqaga"],
+  "Во дворе машины ездят медленно. Но даже медленная машина опасна для ребёнка, выбежавшего из-за угла.",
+  "Hovlida mashinalar sekin yuradi. Lekin sekin mashina ham burchakdan yugurib chiqqan bola uchun xavfli.");
+KQ(TIP, KP.emo("🏠"), "В жилой зоне кто главный — пешеход или машина?", "Turar joy zonasida kim asosiy — piyodami yoki mashina?",
+  "Пешеход", "Piyoda", ["Машина","Тот, кто больше","Тот, кто первым"], ["Mashina","Kim kattaroq bo'lsa","Kim birinchi bo'lsa"],
+  "В жилой зоне у пешеходов преимущество. Но не забывай: водитель может тебя не заметить.",
+  "Turar joy zonasida piyodalar ustun. Lekin unutma: haydovchi seni payqamasligi mumkin.");
+TF(TIP, KP.emo("🚛"), "Водитель большого грузовика видит всё вокруг своей машины.", "Katta yuk mashinasi haydovchisi mashinasi atrofidagi hamma narsani ko'radi.", false,
+  "Нет! У больших машин много «слепых зон» — особенно прямо перед кабиной и сбоку.",
+  "Yo'q! Katta mashinalarda «ko'r zonalar» ko'p — ayniqsa kabina oldida va yonida.");
+TF(TIP, KP.emo("🚓"), "Машинам с сиреной и синей мигалкой уступают дорогу все.", "Sirena va ko'k chiroqli mashinalarga hamma yo'l beradi.", true,
+  "Да! Они спешат на помощь. Пешеходы тоже ждут, пока они проедут.",
+  "Ha! Ular yordamga shoshilmoqda. Piyodalar ham ular o'tishini kutadi.");
+
+// ---------- ДОБАВОЧНЫЕ СИТУАЦИИ ----------
+KQ(TIP, KP.emo("🎒"), "Ты идёшь в школу с другом и вы болтаете. Что важно у перехода?", "Do'sting bilan maktabga gaplashib ketyapsan. O'tish joyida nima muhim?",
+  "Прервать разговор и смотреть на дорогу", "Gapni to'xtatib, yo'lga qarash", ["Продолжать болтать","Смотреть друг на друга","Играть на ходу"], ["Gaplashishni davom ettirish","Bir-biringizga qarash","Yurib o'ynash"],
+  "На переходе всё внимание — на дорогу. Договорите на тротуаре.",
+  "O'tish joyida butun diqqat — yo'lga. Gapni yo'lakda tugatasiz.");
+KQ(TIP, KP.emo("🧢"), "Капюшон или большая кепка закрывают обзор. Что сделать перед переходом?", "Kapyushon yoki katta kepka ko'rinishni to'smoqda. O'tishdan oldin nima qilish kerak?",
+  "Снять капюшон или повернуть голову, чтобы всё видеть", "Hammasini ko'rish uchun kapyushonni yechish yoki boshni burish", ["Ничего","Натянуть ещё ниже","Закрыть уши"], ["Hech narsa","Yanada pastroq tortish","Quloqlarni yopish"],
+  "Капюшон закрывает бока — машину сбоку можно не заметить.",
+  "Kapyushon yonlarni to'sadi — yondagi mashinani payqamaslik mumkin.");
+KQ(TIP, KP.emo("📱"), "Тебе пришло сообщение, пока ты идёшь к переходу. Когда читать?", "O'tish joyiga ketayotganda xabar keldi. Qachon o'qiysan?",
+  "Когда перейдёшь дорогу и остановишься", "Yo'ldan o'tib, to'xtaganingda", ["Прямо на переходе","На ходу у края дороги","Пока горит красный, стоя на дороге"], ["To'g'ri o'tish joyida","Yo'l chetida yurib","Qizil yonayotganda yo'lda turib"],
+  "Телефон подождёт. Сначала безопасно перейди, потом читай.",
+  "Telefon kutadi. Avval xavfsiz o't, keyin o'qi.");
+KQ(TIP, KP.emo("🍦"), "Ты видишь на другой стороне дороги мороженщика. Как к нему пойти?", "Yo'lning narigi tomonida muzqaymoqchini ko'ryapsan. Unga qanday borasan?",
+  "Дойти до перехода и перейти на зелёный", "O'tish joyigacha borib, yashilda o'tish", ["Перебежать прямо к нему","Перейти между машинами","Попросить машины остановиться"], ["To'g'ri unga yugurib o'tish","Mashinalar orasidan o'tish","Mashinalardan to'xtashni so'rash"],
+  "Мороженое никуда не убежит, а дорога не прощает спешки.",
+  "Muzqaymoq hech qayerga qochmaydi, yo'l esa shoshilishni kechirmaydi.");
+KQ(TIP, KP.emo("🚌"), "Ты опоздал на автобус, он уже отъезжает. Что делать?", "Avtobusga kechikding, u allaqachon jo'nayapti. Nima qilasan?",
+  "Подождать следующий", "Keyingisini kutish", ["Бежать за ним по дороге","Стучать в дверь","Хватать за поручень снаружи"], ["Yo'l bo'ylab ortidan yugurish","Eshikni taqillatish","Tashqaridan tutqichdan ushlash"],
+  "Бежать за автобусом по дороге очень опасно. Придёт следующий!",
+  "Avtobus ortidan yo'l bo'ylab yugurish juda xavfli. Keyingisi keladi!");
+KQ(TIP, KP.emo("👀"), "Что значит «посмотреть водителю в глаза» перед переходом?", "O'tishdan oldin «haydovchining ko'ziga qarash» nimani bildiradi?",
+  "Убедиться, что водитель тебя заметил и остановился", "Haydovchi seni payqab, to'xtaganiga ishonch hosil qilish", ["Поиграть в гляделки","Узнать, кто за рулём","Ничего не значит"], ["Ko'z o'ynash","Rulda kimligini bilish","Hech narsani bildirmaydi"],
+  "Если водитель смотрит на тебя и машина остановилась — он тебя видит. Тогда можно идти.",
+  "Haydovchi senga qarab tursa va mashina to'xtagan bo'lsa — u seni ko'ryapti. Shunda yursa bo'ladi.");
+KQ(TIP, KP.emo("🛤️"), "Ты видишь железную дорогу. Можно ли ходить по рельсам?", "Temir yo'lni ko'ryapsan. Relslar ustidan yursa bo'ladimi?",
+  "Нет, переходить только в специальных местах", "Yo'q, faqat maxsus joylardan o'tish kerak", ["Да, если поезда не видно","Да, это интересно","Да, если в наушниках музыка"], ["Ha, poyezd ko'rinmasa","Ha, bu qiziq","Ha, quloqchinda musiqa bo'lsa"],
+  "Поезд едет очень быстро и не может свернуть. Переходи только по переезду или мосту.",
+  "Poyezd juda tez yuradi va burila olmaydi. Faqat kesishma yoki ko'prikdan o't.");
+KQ(TIP, KP.emo("🚧"), "Шлагбаум на железной дороге закрывается и мигает красный. Что делать?", "Temir yo'ldagi shlagbaum yopilmoqda va qizil miltillamoqda. Nima qilish kerak?",
+  "Стоять и ждать, пока поезд проедет", "Poyezd o'tib ketguncha turib kutish", ["Быстро пролезть под шлагбаумом","Перебежать, пока поезд далеко","Помахать машинисту и идти"], ["Shlagbaum ostidan tez o'tish","Poyezd uzoqda ekan, yugurib o'tish","Mashinistga qo'l silkitib, yurish"],
+  "Закрытый шлагбаум и красный сигнал — стоп для всех. Поезд кажется далёким, но приближается очень быстро.",
+  "Yopiq shlagbaum va qizil signal — hamma uchun to'xta. Poyezd uzoqdek ko'rinadi, lekin juda tez yaqinlashadi.");
+TF(TIP, KP.emo("🛤️"), "Поезд может быстро остановиться, если увидит человека.", "Poyezd odamni ko'rsa, tez to'xtay oladi.", false,
+  "Нет! Поезду нужно очень много метров — иногда больше километра — чтобы остановиться.",
+  "Yo'q! Poyezdga to'xtash uchun juda ko'p metr — ba'zan bir kilometrdan ortiq — kerak.");
+KQ(RID, KP.emo("🚦"), "Загадка: если я жёлтый — подожди, если зелёный — иди, а если красный — ...?", "Topishmoq: sariq bo'lsam — kut, yashil bo'lsam — yur, qizil bo'lsam esa — ...?",
+  "Стой!", "To'xta!", ["Беги!","Прыгай!","Танцуй!"], ["Yugur!","Sakra!","Raqs tush!"],
+  "Красный — стой, жёлтый — жди, зелёный — иди. Повтори три раза и запомнишь навсегда!",
+  "Qizil — to'xta, sariq — kut, yashil — yur. Uch marta takrorla va abadiy eslab qolasan!");
+KQ(RID, KP.emo("🦓"), "Загадка: эта «лошадка» не скачет и не ест сено, а помогает людям переходить дорогу. Кто она?", "Topishmoq: bu «otcha» chopmaydi va pichan yemaydi, odamlarga yo'ldan o'tishga yordam beradi. U kim?",
+  "«Зебра» — пешеходный переход", "«Zebra» — piyodalar o'tish joyi", ["Пони","Лошадка-качалка","Ослик"], ["Poni","Tebranuvchi otcha","Eshakcha"],
+  "Полоски «зебры» хорошо видно водителям, поэтому переход и нарисован так.",
+  "«Zebra» chiziqlari haydovchilarga yaxshi ko'rinadi, shuning uchun o'tish joyi shunday chizilgan.");
+KQ(RID, KP.emo("🚸"), "Загадка: в нём сидит ученик, пристёгнут, едет к школе по утрам, жёлтый и большой. Что это?", "Topishmoq: unda o'quvchi kamar taqib o'tiradi, ertalab maktabga boradi, sariq va katta. Bu nima?",
+  "Школьный автобус", "Maktab avtobusi", ["Такси","Самосвал","Пожарная машина"], ["Taksi","Samosval","O't o'chirish mashinasi"],
+  "Школьные автобусы часто жёлтые, чтобы их было видно издалека. На них ставят знак «Перевозка детей».",
+  "Maktab avtobuslari ko'pincha sariq bo'ladi, uzoqdan ko'rinishi uchun. Ularga «Bolalarni tashish» belgisi qo'yiladi.");
+KQ(TIP, KP.emo("🚸"), "Автобус со знаком «Перевозка детей» остановился с мигающими огнями. Что это значит?", "«Bolalarni tashish» belgili avtobus miltillovchi chiroqlar bilan to'xtadi. Bu nimani bildiradi?",
+  "Из него выходят дети — водители должны быть очень осторожны", "Undan bolalar tushmoqda — haydovchilar juda ehtiyot bo'lishi kerak", ["Он сломался","Он сейчас резко поедет","Ничего"], ["U buzildi","U hozir keskin yuradi","Hech narsa"],
+  "Мигалки на таком автобусе предупреждают: рядом дети. Водители обязаны снизить скорость.",
+  "Bunday avtobusdagi chiroqlar ogohlantiradi: yaqinda bolalar. Haydovchilar tezlikni pasaytirishi shart.");
+TF(TIP, KP.emo("🦓"), "На «зебре» можно играть и прыгать по полоскам.", "«Zebra»da o'ynab, chiziqlar ustida sakrash mumkin.", false,
+  "Нет! «Зебра» — это часть дороги. Переходим спокойно и без игр.",
+  "Yo'q! «Zebra» — yo'lning bir qismi. Xotirjam va o'yinsiz o'tamiz.");
+TF(TIP, KP.emo("👀"), "Перед переходом нужно посмотреть налево и направо.", "O'tishdan oldin chapga va o'ngga qarash kerak.", true,
+  "Да! Сначала налево, потом направо, и ещё раз налево.",
+  "Ha! Avval chapga, keyin o'ngga va yana bir bor chapga.");
+KQ(TIP, KP.emo("🧑‍🦯"), "Ты видишь у перехода человека с белой тростью. Как можно помочь?", "O'tish joyida oq hassali odamni ko'ryapsan. Qanday yordam berish mumkin?",
+  "Вежливо спросить, нужна ли помощь", "Yordam kerakmi, deb xushmuomalalik bilan so'rash", ["Дёрнуть за руку","Громко посигналить","Забрать трость"], ["Qo'lidan tortish","Baland signal chalish","Hassani olib qo'yish"],
+  "Белая трость означает, что человек плохо видит. Сначала спроси — может, он сам справится.",
+  "Oq hassa odam yomon ko'rishini bildiradi. Avval so'ra — balki o'zi uddalar.");
+KQ(TIP, KP.emo("🐈"), "Котёнок сидит на дороге. Что делать?", "Mushukcha yo'lda o'tiribdi. Nima qilasan?",
+  "Позвать взрослого, самому на дорогу не выходить", "Kattani chaqirish, o'zing yo'lga chiqmaslik", ["Быстро выбежать и спасти","Позвать его, пусть бежит к тебе через дорогу","Кинуть в него чем-нибудь"], ["Tez yugurib chiqib qutqarish","Chaqirish, yo'l orqali senga yugursin","Unga biror narsa otish"],
+  "Добрый поступок — позвать взрослых. Выбегать на дорогу опасно и для тебя, и для котёнка.",
+  "Yaxshi ish — kattalarni chaqirish. Yo'lga yugurib chiqish sen uchun ham, mushukcha uchun ham xavfli.");
+KQ(TIP, KP.emo("🏆"), "Что самое главное правило на дороге?", "Yo'ldagi eng muhim qoida nima?",
+  "Не спешить и быть внимательным", "Shoshilmaslik va diqqatli bo'lish", ["Быть первым","Бегать быстрее всех","Не смотреть по сторонам"], ["Birinchi bo'lish","Hammadan tez yugurish","Atrofga qaramaslik"],
+  "Внимательность и спокойствие спасают от большинства опасностей на дороге.",
+  "Diqqat va xotirjamlik yo'ldagi xavflarning ko'pidan saqlaydi.");
+KQ(TIP, KP.emo("🎓"), "Ты выучил правила дороги. Что можно сделать дальше?", "Yo'l qoidalarini o'rganding. Keyin nima qilish mumkin?",
+  "Рассказать правила младшим братьям и сёстрам", "Qoidalarni uka-singillaringga aytib berish", ["Забыть их","Нарушать, раз уже знаешь","Ничего"], ["Ularni unutish","Bilganing uchun buzish","Hech narsa"],
+  "Лучший способ запомнить — научить другого. Поделись тренажёром с друзьями!",
+  "Eslab qolishning eng yaxshi usuli — boshqani o'rgatish. Trenajyorni do'stlaring bilan ulash!");
