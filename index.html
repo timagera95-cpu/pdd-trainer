@@ -122,7 +122,7 @@ function makeTicket(n){
 // ================== ТЕКСТЫ ИНТЕРФЕЙСА ==================
 const T = {
  ru:{title:"Тренажёр ПДД",progress:"Решено верно",exam:"Экзамен",tickets:"Случайный билет",newTicket:"Новый билет",
-     kids:"Для детей",kidsSub:"Правила для пешеходов и юных велосипедистов",kNext:"Дальше",kDone:"Готово!",kAgain:"Ещё раз",kGood:["Молодец! 🎉","Правильно! 👏","Отлично! ⭐","Так держать! 💪"],kBad:"Почти! Запомни:",kRes:(c,n)=>`Правильно ${c} из ${n}`,kMsg:["Нужно ещё потренироваться — попробуй снова!","Хорошо! Ещё немного — и будешь знать всё!","Ты знаешь правила дороги на отлично!"],kTip:"совет безопасности",invTitle:"Вдвоём готовиться проще",invSub:"Позовите друга, который тоже учится на права: решайте билеты вместе и сдайте с первого раза",invBtn:"Пригласить друга",
+     kids:"Для детей",kidsSub:"Правила для пешеходов и юных велосипедистов",kNext:"Дальше",kDone:"Готово!",kAgain:"Ещё раз",kGood:["Молодец! 🎉","Правильно! 👏","Отлично! ⭐","Так держать! 💪"],kBad:"Почти! Запомни:",kRes:(c,n)=>`Правильно ${c} из ${n}`,kMsg:["Нужно ещё потренироваться — попробуй снова!","Хорошо! Ещё немного — и будешь знать всё!","Ты знаешь правила дороги на отлично!"],kTip:"совет безопасности",kOk:"Правильно",kWrong:"Неправильно",kErrAd:"Узнать свои ошибки — за просмотр рекламы",kErrTitle:"Твои ошибки",invTitle:"Вдвоём готовиться проще",invSub:"Позовите друга, который тоже учится на права: решайте билеты вместе и сдайте с первого раза",invBtn:"Пригласить друга",
      invText:"Я готовлюсь к экзамену на права в бесплатном тренажёре ПДД прямо в Telegram 🚗 Билеты, перекрёстки, экзамен с таймером. Давай вместе — так быстрее сдадим! 👇",mistakes:"Мои ошибки",
      noMistakes:"Ошибок нет — отлично! 👍",ticket:"Билет",question:"Вопрос",next:"Далее",finish:"Завершить",
      passed:"Экзамен сдан!",failed:"Экзамен не сдан",errors:"Ошибок",timeout:"Время вышло",home:"На главную",
@@ -135,7 +135,7 @@ const T = {
      review:"Разбор ошибок",right:"Правильно",
      ruleLabel:"ПДД РУз",yourAns:"Ваш ответ",rightAns:"Правильно",whyLbl:"Почему",remember:"Как запомнить",explainAd:"Объяснение — за просмотр рекламы",adFail:"Реклама закрыта раньше времени — досмотрите до конца, чтобы открыть объяснение"},
  uz:{title:"YHQ trenajyori",progress:"To'g'ri yechildi",exam:"Imtihon",tickets:"Tasodifiy bilet",newTicket:"Yangi bilet",
-     kids:"Bolalar uchun",kidsSub:"Piyodalar va yosh velosipedchilar uchun qoidalar",kNext:"Keyingi",kDone:"Tayyor!",kAgain:"Yana bir bor",kGood:["Barakalla! 🎉","To'g'ri! 👏","A'lo! ⭐","Shunday davom et! 💪"],kBad:"Deyarli! Eslab qol:",kRes:(c,n)=>`${n} tadan ${c} tasi to'g'ri`,kMsg:["Yana mashq qilish kerak — qaytadan urinib ko'r!","Yaxshi! Yana ozgina — va hammasini bilasan!","Sen yo'l qoidalarini a'lo bilasan!"],kTip:"xavfsizlik maslahati",invTitle:"Ikkalamiz tayyorlansak osonroq",invSub:"Haydovchilikka o'qiyotgan do'stingizni chaqiring: biletlarni birga yeching va birinchi urinishda topshiring",invBtn:"Do'stni taklif qilish",
+     kids:"Bolalar uchun",kidsSub:"Piyodalar va yosh velosipedchilar uchun qoidalar",kNext:"Keyingi",kDone:"Tayyor!",kAgain:"Yana bir bor",kGood:["Barakalla! 🎉","To'g'ri! 👏","A'lo! ⭐","Shunday davom et! 💪"],kBad:"Deyarli! Eslab qol:",kRes:(c,n)=>`${n} tadan ${c} tasi to'g'ri`,kMsg:["Yana mashq qilish kerak — qaytadan urinib ko'r!","Yaxshi! Yana ozgina — va hammasini bilasan!","Sen yo'l qoidalarini a'lo bilasan!"],kTip:"xavfsizlik maslahati",kOk:"To'g'ri",kWrong:"Noto'g'ri",kErrAd:"Xatolaringni bilish — reklama ko'rish evaziga",kErrTitle:"Sening xatolaring",invTitle:"Ikkalamiz tayyorlansak osonroq",invSub:"Haydovchilikka o'qiyotgan do'stingizni chaqiring: biletlarni birga yeching va birinchi urinishda topshiring",invBtn:"Do'stni taklif qilish",
      invText:"Men haydovchilik imtihoniga Telegram'dagi bepul YHQ trenajyorida tayyorlanyapman 🚗 Biletlar, chorrahalar, taymerli imtihon. Keling, birga o'qiymiz — tezroq topshiramiz! 👇",mistakes:"Xatolarim",
      noMistakes:"Xatolar yo'q — a'lo! 👍",ticket:"Bilet",question:"Savol",next:"Keyingi",finish:"Yakunlash",
      passed:"Imtihondan o'tdingiz!",failed:"Imtihondan o'tmadingiz",errors:"Xatolar",timeout:"Vaqt tugadi",home:"Bosh sahifa",
@@ -239,12 +239,13 @@ function home(){
     </div>`;
 }
 
-// ================== ДЕТСКИЙ РЕЖИМ (без рекламы) ==================
-// 10 случайных вопросов из KIDS, объяснение всегда бесплатно, звёзды в конце. В общий прогресс не входит.
+// ================== ДЕТСКИЙ РЕЖИМ ==================
+// 10 случайных вопросов из KIDS. Ответы не показываются по ходу — в конце промежуточная реклама,
+// затем итог (правильно / неправильно), а разбор ошибок — за просмотр рекламы.
 let kid = null;
 function kidsStart(){
   if (typeof KIDS === "undefined") return;
-  kid = { ids: shuffle(KIDS.map((_, i) => i)).slice(0, 10), i: 0, ok: 0, done: false };
+  kid = { ids: shuffle(KIDS.map((_, i) => i)).slice(0, 10), i: 0, ok: 0, ans: [], done: false };
   setBack(home); kidsRender();
 }
 function kidsRender(){
@@ -252,38 +253,54 @@ function kidsRender(){
   const order = kid.order = shuffle([0, 1, 2, 3]);
   app.innerHTML = `${backBtn()}<div class="kid">
     <div class="top"><span>🧒 ${t().kids} · ${kid.i + 1}/${kid.ids.length}</span></div>
-    <div class="dots">${kid.ids.map((_, k) => `<span class="${k < kid.i ? "ok" : k === kid.i ? "cur" : ""}"></span>`).join("")}</div>
+    <div class="dots">${kid.ids.map((_, k) => `<span class="${k <= kid.i ? "cur" : ""}"></span>`).join("")}</div>
     ${q.img ? `<div class="img">${q.img}</div>` : ""}
     <div class="q">${q.q[L]}</div>
-    <div>${order.map((o, k) => `<button class="opt" onclick="kidsAnswer(${o})">${q.o[L][o]}</button>`).join("")}</div>
-    <div id="after"></div></div>`;
+    <div>${order.map(o => `<button class="opt" onclick="kidsAnswer(${o})">${q.o[L][o]}</button>`).join("")}</div></div>`;
   window.scrollTo(0, 0);
 }
 function kidsAnswer(o){
   if (kid.done) return; kid.done = true;
-  const q = KIDS[kid.ids[kid.i]], L = S.lang, ok = o === q.c; if (ok) kid.ok++;
-  haptic(ok);
-  document.querySelectorAll(".opt").forEach((b, k) => { b.disabled = true; const v = kid.order[k];
-    if (v === q.c) b.classList.add("ok"); else if (v === o) b.classList.add("bad"); });
-  const src = q.rule.startsWith("совет") ? t().kTip
+  const q = KIDS[kid.ids[kid.i]];
+  kid.ans[kid.i] = o; if (o === q.c) kid.ok++;
+  haptic(true);
+  if (kid.i < kid.ids.length - 1) { kid.i++; kid.done = false; setTimeout(kidsRender, 150); }
+  else { setBack(null); app.innerHTML = `<div class="kid center" style="padding-top:40vh">⏳</div>`; Ads.interstitial().then(kidsFinish); }
+}
+function kidsSrc(q, L){
+  return q.rule.startsWith("совет") ? t().kTip
     : q.rule.startsWith("знак") ? (L === "uz" ? "YHQ: yo'l belgisi" : "ПДД: " + q.rule)
     : (L === "uz" ? "YHQ: " + q.rule.replace(/п\. ?/, "") + "-band" : "ПДД РУз: " + q.rule);
-  const last = kid.i === kid.ids.length - 1;
-  document.getElementById("after").innerHTML =
-    `<div class="kfb">${ok ? t().kGood[kid.i % t().kGood.length] : "🙂 " + t().kBad}</div>
-     <div class="kexp">💡 ${q.e[L]}<div class="hint" style="margin-top:6px">📖 ${src}</div></div>
-     <button class="btn kbtn" onclick="${last ? "kidsFinish()" : "kidsNext()"}">${last ? t().kDone : t().kNext}</button>`;
 }
-function kidsNext(){ kid.i++; kid.done = false; kidsRender(); }
 function kidsFinish(){
-  const n = kid.ids.length, c = kid.ok, st = c === n ? 3 : c >= 7 ? 2 : 1;
+  setBack(home);
+  const n = kid.ids.length, c = kid.ok, w = n - c, st = c === n ? 3 : c >= 7 ? 2 : 1;
   app.innerHTML = `${backBtn()}<div class="kid">
     <div class="stars">${"⭐".repeat(st)}${"☆".repeat(3 - st)}</div>
     <h1 class="center">${t().kRes(c, n)}</h1>
+    <div class="card center" style="font-size:18px;font-weight:700">✅ ${t().kOk}: ${c} &nbsp;&nbsp; ❌ ${t().kWrong}: ${w}</div>
     <div class="card center" style="font-size:16px">${t().kMsg[st - 1]}</div>
-    <button class="btn kbtn" onclick="kidsStart()">🔁 ${t().kAgain}</button>
+    <div id="kerr">${w ? `<button class="btn kbtn" id="kerrBtn" onclick="kidsErrors()">🎬 ${t().kErrAd}</button>` : ""}</div>
+    <button class="btn ${w ? "sec" : "kbtn"}" onclick="kidsStart()">🔁 ${t().kAgain}</button>
     <button class="btn sec" onclick="home()">${t().home}</button></div>`;
   window.scrollTo(0, 0);
+}
+function kidsErrors(){
+  const btn = document.getElementById("kerrBtn"); if (!btn) return; btn.disabled = true;
+  Ads.rewarded().then(ok => {
+    const box = document.getElementById("kerr"); if (!box) return;
+    if (!ok) { btn.disabled = false; box.insertAdjacentHTML("beforeend", `<div class="hint center" style="margin:-4px 0 10px">${t().adFail}</div>`); return; }
+    const L = S.lang;
+    box.innerHTML = `<h2 style="margin:14px 0 8px">${t().kErrTitle}</h2>` + kid.ids.map((id, k) => {
+      const q = KIDS[id], a = kid.ans[k]; if (a === q.c) return "";
+      return `<div class="card" style="text-align:left">
+        ${q.img ? `<div class="img" style="margin-bottom:6px">${q.img}</div>` : ""}
+        <div style="font-weight:700;margin-bottom:8px">${q.q[L]}</div>
+        <div style="color:var(--bad)">❌ ${t().yourAns}: ${q.o[L][a]}</div>
+        <div style="color:var(--ok);margin:4px 0 8px">✅ ${t().rightAns}: ${q.o[L][q.c]}</div>
+        <div class="kexp">💡 ${q.e[L]}<div class="hint" style="margin-top:6px">📖 ${kidsSrc(q, L)}</div></div></div>`;
+    }).join("");
+  });
 }
 
 // ================== СЕССИИ ==================
