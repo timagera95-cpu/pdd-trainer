@@ -1994,3 +1994,137 @@ Q("ситуация, п. 54", "<svg class=\"scene\" viewBox=\"0 0 200 200\"><rec
 Q("ситуация, п. 54", "<svg class=\"scene\" viewBox=\"0 0 200 200\"><rect width=\"200\" height=\"200\" fill=\"#a5d6a7\"/><rect x=\"0\" y=\"62\" width=\"200\" height=\"66\" fill=\"#5b5f63\"/><path d=\"M0 95 H200\" stroke=\"#fff\" stroke-width=\"2\" stroke-dasharray=\"8 6\"/><rect x=\"0\" y=\"128\" width=\"200\" height=\"12\" fill=\"#cfd8dc\"/><rect x=\"86\" y=\"140\" width=\"38\" height=\"60\" fill=\"#9e9e9e\"/><rect x=\"70\" y=\"150\" width=\"14\" height=\"40\" fill=\"#8d6e63\"/><rect x=\"126\" y=\"150\" width=\"14\" height=\"40\" fill=\"#8d6e63\"/><path d=\"M105 160 C105 95 95 80 55 80\" fill=\"none\" stroke=\"#e53935\" stroke-width=\"3.2\" stroke-dasharray=\"6 3\"/><polygon points=\"46,80 55,74 55,86\" fill=\"#e53935\"/><g transform=\"translate(-10 12)\"><rect x=\"106\" y=\"153\" width=\"18\" height=\"30\" rx=\"5\" fill=\"#e53935\" stroke=\"#222\" stroke-width=\"1.5\"/><rect x=\"108.5\" y=\"158\" width=\"13\" height=\"7\" rx=\"2\" fill=\"#e3f2fd\"/><circle cx=\"115\" cy=\"175\" r=\"3.2\" fill=\"#fff\"/></g><path d=\"M45 112 H185\" fill=\"none\" stroke=\"#fdd835\" stroke-width=\"3.2\" stroke-dasharray=\"6 3\"/><polygon points=\"195,112 186,106 186,118\" fill=\"#fdd835\"/><g transform=\"translate(30 112) rotate(90)\"><rect x=\"-9\" y=\"-15\" width=\"18\" height=\"30\" rx=\"5\" fill=\"#fdd835\" stroke=\"#222\" stroke-width=\"1.5\"/><rect x=\"-6.5\" y=\"-10\" width=\"13\" height=\"7\" rx=\"2\" fill=\"#e3f2fd\"/></g></svg>", "Вы управляете красным автомобилем (с белой точкой). Как вам следует поступить?", "Siz qizil avtomobilni (oq nuqtali) boshqaryapsiz. Qanday yo'l tutishingiz kerak?", ["Уступить жёлтому","Действовать по правилу «помехи справа»","Уступить пешеходу","Проехать, никому не уступая"], ["Sariq avtomobilga yo'l berish","«O'ngdagi to'siq» qoidasiga amal qilish","Piyodaga yo'l berish","Hech kimga yo'l bermay o'tish"], 0, "При выезде на дорогу с прилегающей территории (двора) нужно уступить дорогу пешеходам и транспортным средствам, движущимся по ней (п. 54). Правило «помехи справа» здесь не действует.", "Tutash hududdan (hovlidan) yo'lga chiqishda unda harakatlanayotgan piyodalar va transport vositalariga yo'l berish kerak (54-band). «O'ngdagi to'siq» qoidasi bu yerda amal qilmaydi.");
 Q("ситуация, п. 54", "<svg class=\"scene\" viewBox=\"0 0 200 200\"><rect width=\"200\" height=\"200\" fill=\"#a5d6a7\"/><rect x=\"0\" y=\"62\" width=\"200\" height=\"66\" fill=\"#5b5f63\"/><path d=\"M0 95 H200\" stroke=\"#fff\" stroke-width=\"2\" stroke-dasharray=\"8 6\"/><rect x=\"0\" y=\"128\" width=\"200\" height=\"12\" fill=\"#cfd8dc\"/><rect x=\"86\" y=\"140\" width=\"38\" height=\"60\" fill=\"#9e9e9e\"/><rect x=\"70\" y=\"150\" width=\"14\" height=\"40\" fill=\"#8d6e63\"/><rect x=\"126\" y=\"150\" width=\"14\" height=\"40\" fill=\"#8d6e63\"/><path d=\"M105 160 Q105 112 150 112\" fill=\"none\" stroke=\"#e53935\" stroke-width=\"3.2\" stroke-dasharray=\"6 3\"/><polygon points=\"160,112 151,106 151,118\" fill=\"#e53935\"/><g transform=\"translate(-10 12)\"><rect x=\"106\" y=\"153\" width=\"18\" height=\"30\" rx=\"5\" fill=\"#e53935\" stroke=\"#222\" stroke-width=\"1.5\"/><rect x=\"108.5\" y=\"158\" width=\"13\" height=\"7\" rx=\"2\" fill=\"#e3f2fd\"/><circle cx=\"115\" cy=\"175\" r=\"3.2\" fill=\"#fff\"/></g><g transform=\"translate(5 -3)\"><circle cx=\"100\" cy=\"129\" r=\"3.5\" fill=\"#212121\"/><rect x=\"97\" y=\"133\" width=\"6\" height=\"9\" rx=\"2\" fill=\"#212121\"/></g></svg>", "Вы управляете красным автомобилем (с белой точкой). Как вам следует поступить?", "Siz qizil avtomobilni (oq nuqtali) boshqaryapsiz. Qanday yo'l tutishingiz kerak?", ["Уступить пешеходу","Проехать, никому не уступая","Выехать, включив аварийную сигнализацию","Действовать по правилу «помехи справа»"], ["Piyodaga yo'l berish","Hech kimga yo'l bermay o'tish","Avariya signalizatsiyasini yoqib, chiqib ketish","«O'ngdagi to'siq» qoidasiga amal qilish"], 0, "При выезде на дорогу с прилегающей территории (двора) нужно уступить дорогу пешеходам и транспортным средствам, движущимся по ней (п. 54). Правило «помехи справа» здесь не действует.", "Tutash hududdan (hovlidan) yo'lga chiqishda unda harakatlanayotgan piyodalar va transport vositalariga yo'l berish kerak (54-band). «O'ngdagi to'siq» qoidasi bu yerda amal qilmaydi.");
 Q("ситуация, п. 54", "<svg class=\"scene\" viewBox=\"0 0 200 200\"><rect width=\"200\" height=\"200\" fill=\"#a5d6a7\"/><rect x=\"0\" y=\"62\" width=\"200\" height=\"66\" fill=\"#5b5f63\"/><path d=\"M0 95 H200\" stroke=\"#fff\" stroke-width=\"2\" stroke-dasharray=\"8 6\"/><rect x=\"0\" y=\"128\" width=\"200\" height=\"12\" fill=\"#cfd8dc\"/><rect x=\"86\" y=\"140\" width=\"38\" height=\"60\" fill=\"#9e9e9e\"/><rect x=\"70\" y=\"150\" width=\"14\" height=\"40\" fill=\"#8d6e63\"/><rect x=\"126\" y=\"150\" width=\"14\" height=\"40\" fill=\"#8d6e63\"/><path d=\"M45 112 H185\" fill=\"none\" stroke=\"#e53935\" stroke-width=\"3.2\" stroke-dasharray=\"6 3\"/><polygon points=\"195,112 186,106 186,118\" fill=\"#e53935\"/><g transform=\"translate(30 112) rotate(90)\"><rect x=\"-9\" y=\"-15\" width=\"18\" height=\"30\" rx=\"5\" fill=\"#e53935\" stroke=\"#222\" stroke-width=\"1.5\"/><rect x=\"-6.5\" y=\"-10\" width=\"13\" height=\"7\" rx=\"2\" fill=\"#e3f2fd\"/><circle cx=\"0\" cy=\"7\" r=\"3.2\" fill=\"#fff\"/></g><path d=\"M105 160 Q105 112 150 112\" fill=\"none\" stroke=\"#1e88e5\" stroke-width=\"3.2\" stroke-dasharray=\"6 3\"/><polygon points=\"160,112 151,106 151,118\" fill=\"#1e88e5\"/><g transform=\"translate(-10 12)\"><rect x=\"106\" y=\"153\" width=\"18\" height=\"30\" rx=\"5\" fill=\"#1e88e5\" stroke=\"#222\" stroke-width=\"1.5\"/><rect x=\"108.5\" y=\"158\" width=\"13\" height=\"7\" rx=\"2\" fill=\"#e3f2fd\"/></g></svg>", "Вы управляете красным автомобилем (с белой точкой). Как вам следует поступить?", "Siz qizil avtomobilni (oq nuqtali) boshqaryapsiz. Qanday yo'l tutishingiz kerak?", ["Проехать, никому не уступая","Уступить синему","Уступить пешеходу","Подать звуковой сигнал и выехать"], ["Hech kimga yo'l bermay o'tish","Ko'k avtomobilga yo'l berish","Piyodaga yo'l berish","Tovush signali berib, chiqib ketish"], 0, "Синий выезжает со двора (прилегающей территории) и обязан уступить всем, кто движется по дороге (п. 54). Вы едете по дороге — проезжаете первым.", "Ko'k avtomobil hovlidan (tutash hududdan) chiqmoqda va yo'lda harakatlanayotgan hammaga yo'l berishi shart (54-band). Siz yo'lda ketyapsiz — birinchi o'tasiz.");
+
+// =====================================================================
+// ГЛУБОКИЕ ОБЪЯСНЕНИЯ: блок «🧠 Как запомнить» по темам (открывается за рекламу).
+// Все числа — из ПДД РУз (те же, что в вопросах базы).
+// =====================================================================
+const TIPS = {
+ sit: {
+  ru: "Проверяйте по порядку: 1) регулировщик; 2) светофор; 3) знаки приоритета («Главная дорога», «Уступите дорогу», STOP); 4) трамвай на равнозначной дороге; 5) помеха справа; 6) поворачивающий налево пропускает встречных, едущих прямо и направо. Первое сработавшее правило и решает очерёдность. Если траектории не пересекаются — машины едут одновременно.",
+  uz: "Tartib bilan tekshiring: 1) tartibga soluvchi; 2) svetofor; 3) ustunlik belgilari («Asosiy yo'l», «Yo'l bering», STOP); 4) teng ahamiyatli yo'lda tramvay; 5) o'ngdagi to'siq; 6) chapga burilayotgan transport to'g'riga va o'ngga ketayotgan qarshi transportni o'tkazadi. Birinchi ishlagan qoida navbatni hal qiladi. Yo'llar kesishmasa — mashinalar bir vaqtda o'tadi."},
+ round: {
+  ru: "Круговое движение: кто уже на кольце — тот главный. Въезжающий всегда уступает тем, кто едет по кругу, даже если они слева.",
+  uz: "Aylanma harakat: aylanada ketayotgan — asosiy. Kirayotgan transport aylanada ketayotganlarga, ular chapda bo'lsa ham, doim yo'l beradi."},
+ yard: {
+  ru: "Двор, АЗС, парковка — это «прилегающая территория». Выезжая с неё, вы уступаете всем: и машинам на дороге, и пешеходам на тротуаре. Помеха справа здесь не работает.",
+  uz: "Hovli, YoQSh, to'xtash joyi — bu «tutash hudud». Undan chiqayotganda hammaga: yo'ldagi mashinalarga ham, yo'lakdagi piyodalarga ham yo'l berasiz. O'ngdagi to'siq bu yerda ishlamaydi."},
+ pedturn: {
+  ru: "Поворачиваете — смотрите на «зебру» той дороги, КУДА поворачиваете: там пешеход главнее вас, даже если у вас зелёный.",
+  uz: "Burilayotganda o'zingiz BURILAYOTGAN yo'ldagi «zebra»ga qarang: u yerda piyoda sizdan ustun, sizda yashil bo'lsa ham."},
+ emerg: {
+  ru: "Синий маячок + сирена = уступают все, даже на главной и на зелёный. Только маячок без сирены преимущества не даёт. Жёлтый/оранжевый маячок — лишь предупреждение.",
+  uz: "Ko'k chiroq + sirena = hamma yo'l beradi, asosiy yo'lda va yashilda ham. Sirenasiz faqat chiroq ustunlik bermaydi. Sariq/to'q sariq chiroq — faqat ogohlantirish."},
+ sg1: {
+  ru: "Предупреждающие знаки (группа 1) — белый треугольник с красной каймой, вершиной вверх. Они ничего не запрещают, а говорят: «впереди опасность — снизьте скорость».",
+  uz: "Ogohlantiruvchi belgilar (1-guruh) — uchi yuqoriga qaragan qizil hoshiyali oq uchburchak. Ular hech narsani taqiqlamaydi, balki «oldinda xavf — tezlikni pasaytiring» deydi."},
+ sg2: {
+  ru: "Знаки приоритета (группа 2): жёлтый ромб — вы на главной; перевёрнутый треугольник — уступите; STOP — обязательно остановитесь, даже если никого нет. Толстая линия на знаке 2.3 — ваша (главная) дорога.",
+  uz: "Ustunlik belgilari (2-guruh): sariq romb — siz asosiy yo'ldasiz; teskari uchburchak — yo'l bering; STOP — hech kim bo'lmasa ham albatta to'xtang. 2.3 belgisidagi yo'g'on chiziq — sizning (asosiy) yo'lingiz."},
+ sg3: {
+  ru: "Запрещающие знаки (группа 3) — круг с красной каймой. Действуют, как правило, до ближайшего перекрёстка (а без перекрёстков — до конца населённого пункта); выезд со двора их действие не прерывает. «Остановка запрещена» — синий круг с красным крестом, «Стоянка запрещена» — с одной полосой.",
+  uz: "Taqiqlovchi belgilar (3-guruh) — qizil hoshiyali doira. Odatda eng yaqin chorrahagacha (chorraha bo'lmasa — aholi punkti oxirigacha) amal qiladi; hovlidan chiqish joyi ularni to'xtatmaydi. «To'xtash taqiqlangan» — qizil xochli ko'k doira, «To'xtab turish taqiqlangan» — bitta chiziqli."},
+ sg4: {
+  ru: "Предписывающие знаки (группа 4) — синий круг с белым рисунком. Они не запрещают, а ПРИКАЗЫВАЮТ: ехать только так, как показано. Синий круг = «так надо», красная кайма = «так нельзя».",
+  uz: "Buyuruvchi belgilar (4-guruh) — oq rasmli ko'k doira. Ular taqiqlamaydi, BUYURADI: faqat ko'rsatilgandek harakatlaning. Ko'k doira = «shunday kerak», qizil hoshiya = «shunday mumkin emas»."},
+ sg5: {
+  ru: "Информационные знаки (группа 5) — синие или белые прямоугольники. Они сообщают: тупик, одностороннее движение, начало населённого пункта, место стоянки. Не путайте синий КВАДРАТ (информация) с синим КРУГОМ (приказ).",
+  uz: "Axborot belgilari (5-guruh) — ko'k yoki oq to'rtburchaklar. Ular xabar beradi: berk ko'cha, bir tomonlama harakat, aholi punkti boshlanishi, to'xtab turish joyi. Ko'k KVADRAT (axborot) bilan ko'k DOIRA (buyruq)ni adashtirmang."},
+ mark: {
+  ru: "Белая разметка — постоянная, жёлтая — запрет остановки/стоянки или временная (временная главнее постоянной). Сплошную пересекать нельзя, прерывистую — можно. Двойная линия 1.11: пересекать можно только со стороны прерывистой.",
+  uz: "Oq chiziq — doimiy, sariq — to'xtash/to'xtab turish taqiqi yoki vaqtinchalik (vaqtinchalik doimiydan ustun). Uzluksizni kesib bo'lmaydi, uzuq-uzuqni — mumkin. 1.11 qo'sh chizig'ini faqat uzuq-uzuq tomonidan kesib o'tish mumkin."},
+ aid: {
+  ru: "Порядок помощи: 1) безопасность места; 2) вызов скорой — 103; 3) остановить опасное кровотечение; 4) без сознания, но дышит — на бок. Жгут — выше раны, с запиской о времени, зимой не дольше 1 часа. Не поить при травме живота и без сознания.",
+  uz: "Yordam tartibi: 1) joy xavfsizligi; 2) tez yordam — 103; 3) xavfli qon ketishni to'xtatish; 4) hushsiz, lekin nafas olsa — yonboshga. Jgut — yaradan yuqoriga, vaqt yozilgan qog'oz bilan, qishda 1 soatdan ko'p emas. Qorin jarohatida va hushsizga ichimlik bermang."},
+ dtp: {
+  ru: "ДТП — три первых шага: остановиться, включить аварийку, выставить знак. Машину не двигать — только если она мешает движению и вы зафиксировали всё на фото/видео при свидетелях. Пострадавший важнее всего.",
+  uz: "YTH — dastlabki uch qadam: to'xtash, avariya chirog'ini yoqish, belgi qo'yish. Mashinani siljitmang — faqat harakatga xalaqit bersa va hammasini guvohlar ishtirokida foto/videoga olgan bo'lsangiz. Jabrlanuvchi hammadan muhim."},
+ ped: {
+  ru: "Пешеход: идёт навстречу машинам (чтобы их видеть), а ведущий велосипед — по ходу движения. Автобус обходят сзади, трамвай — спереди. На проезжей части — без телефона.",
+  uz: "Piyoda: mashinalarga qarshi yuradi (ularni ko'rish uchun), velosiped yetaklagan esa — harakat yo'nalishida. Avtobusni orqasidan, tramvayni oldidan aylanib o'tiladi. Qatnov qismida — telefonsiz."},
+ pass: {
+  ru: "Пассажир садится и выходит только со стороны тротуара и только после полной остановки. За поведение пассажиров в машине отвечает водитель.",
+  uz: "Yo'lovchi faqat yo'lak tomonidan va faqat to'liq to'xtagandan keyin chiqadi va tushadi. Mashinadagi yo'lovchilar xatti-harakati uchun haydovchi javob beradi."},
+ signals: {
+  ru: "Иерархия: регулировщик > светофор > знаки приоритета > разметка. Мигающий жёлтый = светофора нет, перекрёсток нерегулируемый. Выключенная доп. секция = в ту сторону нельзя.",
+  uz: "Ierarxiya: tartibga soluvchi > svetofor > ustunlik belgilari > chiziqlar. Miltillovchi sariq = svetofor yo'q, chorraha tartibga solinmagan. O'chiq qo'shimcha seksiya = u tomonga mumkin emas."},
+ regul: {
+  ru: "Регулировщик: грудь и спина — «стена», ехать нельзя; бока — «ворота», ехать можно. Правая рука вперёд — со стороны левого бока можно во все стороны, со стороны груди — только направо.",
+  uz: "Tartibga soluvchi: ko'krak va orqa — «devor», o'tib bo'lmaydi; yonlar — «darvoza», o'tish mumkin. O'ng qo'l oldinga — chap yon tomondan barcha yo'nalishlarga, ko'krak tomondan — faqat o'ngga."},
+ warn: {
+  ru: "Поворотник — заранее, но он не даёт преимущества. Знак аварийной остановки: 15 м в городе, 30 м за городом. Звуковой сигнал в городе — только чтобы предотвратить ДТП.",
+  uz: "Burilish chirog'i — oldindan, lekin u ustunlik bermaydi. Avariya to'xtash belgisi: shaharda 15 m, shahardan tashqarida 30 m. Shaharda tovush signali — faqat YTHning oldini olish uchun."},
+ maneuver: {
+  ru: "Разворот и задний ход запрещены там, где опасно: переходы, тоннели, мосты, ж/д переезды и места, где видимость меньше 100 м. Перестраиваетесь одновременно с соседом — уступает тот, у кого он справа.",
+  uz: "Qayrilib olish va orqaga harakatlanish xavfli joylarda taqiqlangan: o'tish joylari, tunnellar, ko'priklar, temir yo'l kesishmalari va ko'rinish 100 m dan kam joylar. Qo'shni bilan bir vaqtda qator o'zgartirsangiz — u o'ngda bo'lgan haydovchi yo'l beradi."},
+ lanes: {
+  ru: "Держитесь правее, левые полосы — для обгона и поворота. На дороге с 4+ полосами на встречку нельзя вовсе. На встречные трамвайные пути выезжать нельзя никогда. Дистанция — такая, чтобы успеть остановиться.",
+  uz: "O'ngroqda harakatlaning, chap qatorlar — quvib o'tish va burilish uchun. 4+ qatorli yo'lda qarama-qarshi tomonga umuman chiqib bo'lmaydi. Qarama-qarshi tramvay yo'llariga hech qachon chiqib bo'lmaydi. Masofa — to'xtab ulguradigan darajada."},
+ speed: {
+  ru: "Шпаргалка скоростей: двор и жилая зона — 20; у школ — 30; Ташкент, Нукус, областные и районные центры — 60; другие населённые пункты — 70. За городом: легковые — 100, междугородние автобусы — 90, мотоциклы, легковые с прицепом и грузовики >3,5 т — 80, грузовики с прицепом — 70. Буксировка — 50, группы детей — 60.",
+  uz: "Tezliklar shpargalkasi: hovli va turar joy zonasi — 20; maktab yonida — 30; Toshkent, Nukus, viloyat va tuman markazlari — 60; boshqa aholi punktlari — 70. Shahardan tashqarida: yengil avtomobillar — 100, shaharlararo avtobuslar — 90, mototsikllar, tirkamali yengil va 3,5 t dan og'ir yuk avtomobillari — 80, tirkamali yuk avtomobillari — 70. Shatakka olish — 50, bolalar guruhlari — 60."},
+ overtake: {
+  ru: "В Узбекистане безрельсовое ТС можно обгонять с любой стороны; поворачивающего налево — только справа. Обгон запрещён: на регулируемых перекрёстках, на переходах, на мостах и под ними, на ж/д переездах и за 100 м до них, при плохой видимости. Обгоняемый не должен ускоряться.",
+  uz: "O'zbekistonda relssiz transportni istalgan tomondan quvib o'tish mumkin; chapga burilayotganni — faqat o'ngdan. Quvib o'tish taqiqlanadi: tartibga solingan chorrahalarda, o'tish joylarida, ko'priklarda va ostida, temir yo'l kesishmalarida va ulardan 100 m oldin, ko'rinish yomon joyda. Quvib o'tilayotgan tezlashmasligi kerak."},
+ stop: {
+  ru: "Числа остановки: переход — 10 м перед ним; остановка автобуса без разметки — 15 м; перекрёсток и место разворота — 30 м; стоянка у ж/д переезда — 50 м; до сплошной линии должно оставаться 3 м; видимость меньше 100 м — нельзя.",
+  uz: "To'xtash raqamlari: o'tish joyi — undan 10 m oldin; chiziqsiz avtobus bekati — 15 m; chorraha va qayrilib olish joyi — 30 m; temir yo'l kesishmasi yonida to'xtab turish — 50 m; uzluksiz chiziqqacha 3 m qolishi kerak; ko'rinish 100 m dan kam — mumkin emas."},
+ cross: {
+  ru: "Нерегулируемый перекрёсток: сначала знаки (второстепенная уступает главной всем), затем трамвай, затем помеха справа, затем левый поворот уступает встречным. Не видите покрытие и знаков нет — считайте себя на второстепенной. Затор за перекрёстком — не выезжайте.",
+  uz: "Tartibga solinmagan chorraha: avval belgilar (ikkinchi darajali yo'l asosiyga hammaga yo'l beradi), keyin tramvay, keyin o'ngdagi to'siq, keyin chapga burilish qarshi transportga yo'l beradi. Qoplamani ko'rmasangiz va belgi bo'lmasa — o'zingizni ikkinchi darajali yo'lda deb hisoblang. Chorrahadan keyin tirbandlik — chiqmang."},
+ crosswalk: {
+  ru: "У «зебры» пешеход главный. Соседняя машина остановилась перед переходом — значит, там кто-то идёт: тормозите и вы. Слепой с белой тростью и дети у автобуса «Перевозка детей» — пропускать всегда.",
+  uz: "«Zebra»da piyoda asosiy. Yondagi mashina o'tish joyi oldida to'xtadi — demak, kimdir o'tmoqda: siz ham tormozlang. Oq hassali ko'zi ojiz va «Bolalarni tashish» avtobusi yonidagi bolalar — doim o'tkazib yuboriladi."},
+ rail: {
+  ru: "Переезд: шлагбаум закрыт, закрывается или красный сигнал — стоп. Остановиться: 5 м до шлагбаума, без шлагбаума — 10 м до рельса. Застряли — люди вдоль путей на 1000 м в обе стороны, сигнал тревоги: один длинный и три коротких.",
+  uz: "Kesishma: shlagbaum yopiq, yopilmoqda yoki qizil signal — to'xtang. To'xtash: shlagbaumdan 5 m, shlagbaumsiz — relsdan 10 m. Qolib ketsangiz — odamlar yo'l bo'ylab ikkala tomonga 1000 m ga, xavf signali: bitta uzun va uchta qisqa."},
+ highway: {
+  ru: "Автомагистраль — только для быстрых: всё, что не может ехать 40 км/ч, сюда нельзя. Нельзя: разворачиваться, ехать задним ходом, учиться вождению, останавливаться вне специальных площадок.",
+  uz: "Avtomagistral — faqat tezlar uchun: 40 km/soat yura olmaydigan hamma narsa bu yerga kira olmaydi. Mumkin emas: qayrilib olish, orqaga yurish, o'quv haydash, maxsus maydonchalardan tashqarida to'xtash."},
+ resid: {
+  ru: "Жилая зона и двор: пешеход главный и может идти по проезжей части, скорость — до 20 км/ч, нельзя стоять с работающим мотором. Выезжая из жилой зоны, уступаете всем.",
+  uz: "Turar joy zonasi va hovli: piyoda asosiy va qatnov qismidan yurishi mumkin, tezlik — 20 km/soatgacha, dvigatel ishlab turgan holda turish mumkin emas. Turar joy zonasidan chiqayotganda hammaga yo'l berasiz."},
+ slope: {
+  ru: "Горка: уступает тот, кто едет ВНИЗ (ему легче остановиться и снова тронуться). На спуске — не накатом: тормозите двигателем. Отказали тормоза — аварийный съезд (знак 5.40).",
+  uz: "Tepalik: PASTGA tushayotgan yo'l beradi (unga to'xtab, qayta yurish osonroq). Nishabda — inersiya bilan emas: dvigatel bilan tormozlang. Tormoz ishlamay qolsa — avariya chiqish yo'li (5.40 belgisi)."},
+ route: {
+  ru: "Маршрутный транспорт: в городе пропускайте автобус, отъезжающий от остановки. На полосу для автобусов можно заехать только на 50 м перед поворотом во двор, а при прерывистой линии — перестроиться на неё перед поворотом.",
+  uz: "Yo'nalishli transport: shaharda bekatdan chiqayotgan avtobusni o'tkazing. Avtobuslar qatoriga faqat hovliga burilishdan 50 m oldin kirish mumkin, uzuq-uzuq chiziqda esa burilishdan oldin unga o'tish kerak."},
+ lights: {
+  ru: "Дальний свет переключают на ближний за 150 м до встречной машины. Ослепили — аварийка и плавно до остановки, не меняя полосы. Днём ближний обязателен мотоциклам, в колонне, с детьми, при буксировке и в сильный дождь или снег.",
+  uz: "Uzoq yorug'lik qarshi mashinagacha 150 m qolganda yaqiniga almashtiriladi. Ko'z qamashsa — avariya chirog'i va qatorni o'zgartirmay, sekin to'xtaguncha. Kunduzi yaqin yorug'lik mototsikllarga, kolonnada, bolalar bilan, shatakka olganda va kuchli yomg'ir yoki qorda majburiy."},
+ tow: {
+  ru: "Буксировка в цифрах: трос 4–6 м, жёсткая сцепка — до 4 м, весь «поезд» — до 20 м, скорость — до 50 км/ч. Нельзя: тросом в гололёд, двух машин сразу, мотоцикл, людей в буксируемом автобусе. Руль не работает — только частичной погрузкой.",
+  uz: "Shatakka olish raqamlarda: tros 4–6 m, qattiq bog'lam — 4 m gacha, butun «poyezd» — 20 m gacha, tezlik — 50 km/soatgacha. Mumkin emas: muzda tros bilan, bir vaqtda ikki mashinani, mototsiklni, shatakdagi avtobusda odamlarni. Rul ishlamasa — faqat qisman ortish usulida."},
+ school: {
+  ru: "Возраст для прав: «A» — 16 лет, «B» и «C» — 18, «BE» и «CE» — 19, «D» — 21. Первое обучение — только на закрытой площадке, учебная машина — с доп. педалями и знаком.",
+  uz: "Guvohnoma uchun yosh: «A» — 16 yosh, «B» va «C» — 18, «BE» va «CE» — 19, «D» — 21. Dastlabki o'qish — faqat yopiq maydonchada, o'quv mashinasi — qo'shimcha pedallar va belgi bilan."},
+ people: {
+  ru: "Люди в кузове: категория «C» и стаж 3 года; больше 8 человек — ещё «D»; борта не ниже 1,3 м. Детей в кузове — никогда. Ребёнок впереди — только в автокресле, на мотоцикле — с 12 лет. Трогаться — только с закрытыми дверями.",
+  uz: "Kuzovda odamlar: «C» toifa va 3 yil staj; 8 kishidan ko'p — yana «D»; bortlar kamida 1,3 m. Kuzovda bolalar — hech qachon. Old o'rindiqda bola — faqat bolalar o'rindig'ida, mototsiklda — 12 yoshdan. Yurishni — faqat eshiklar yopiq holda boshlash."},
+ cargo: {
+  ru: "Груз: на крыше — до 1 м в высоту; выступает больше чем на 1 м спереди/сзади или 0,4 м сбоку — знак «Крупногабаритный груз», ночью — белый фонарь спереди и красный сзади. Номер и фонари закрывать нельзя.",
+  uz: "Yuk: tomda — balandligi 1 m gacha; oldi/orqasidan 1 m dan yoki yonidan 0,4 m dan ko'p chiqib tursa — «Katta gabaritli yuk» belgisi, kechasi — oldida oq, orqasida qizil chiroq. Raqam va chiroqlarni to'sib bo'lmaydi."},
+ bike: {
+  ru: "Велосипед — с 14 лет, мопед и скутер — с 16. Ехать в один ряд у правого края. Нельзя: переезжать «зебру» верхом, поворачивать налево на многополосной дороге, возить людей (кроме ребёнка до 7 лет в спецкресле). Ночью — светоотражающий жилет.",
+  uz: "Velosiped — 14 yoshdan, moped va skuter — 16 dan. O'ng chetda bir qatorda yurish. Mumkin emas: «zebra»dan minib o'tish, ko'p qatorli yo'lda chapga burilish, odam tashish (maxsus o'rindiqdagi 7 yoshgacha boladan tashqari). Kechasi — nur qaytaruvchi jilet."},
+ driver: {
+  ru: "За рулём нельзя: алкоголь и лекарства, снижающие реакцию; телефон в руке; видео на экране; ехать в дождь с неработающим дворником; давать руль тому, кого нет в страховке. Ремень — водитель и пассажир спереди, шлем — на мотоцикле и скутере.",
+  uz: "Rulda mumkin emas: alkogol va reaksiyani pasaytiruvchi dorilar; qo'ldagi telefon; ekranda video; yomg'irda tozalagich ishlamay yurish; sug'urtada yo'q odamga rul berish. Kamar — haydovchi va oldingi yo'lovchi, shlem — mototsikl va skuterda."}
+};
+
+function tipKey(q){
+  const r = q.rule;
+  if (r.startsWith("ситуация")) return /\b98\b/.test(r) ? "round" : /\b54\b/.test(r) ? "yard" : /\b96\b/.test(r) ? "pedturn" : /\b26\b/.test(r) && !/10[4-7]/.test(r) ? "emerg" : "sit";
+  if (r.startsWith("разметка")) return "mark";
+  if (r === "первая помощь") return "aid";
+  if (r === "раздел 6") return "emerg";
+  const g = r.match(/^знак(?:и)?(?: группы)?\s*(\d)/); if (g) return "sg" + g[1];
+  const n = parseFloat((r.match(/п\.\s*([\d.]+)/) || [])[1]);
+  if (isNaN(n)) return null;
+  const R = [[9,12,"driver"],[13,14,"dtp"],[15,22,"ped"],[23,24,"pass"],[25,28,"emerg"],[38,38,"regul"],[31,43,"signals"],[45,51,"warn"],[54,63,"maneuver"],
+    [65,76,"lanes"],[77,81,"speed"],[82,87,"overtake"],[88,95,"stop"],[96,108,"cross"],[109,115.2,"crosswalk"],[118,120,"rail"],[121,122,"highway"],
+    [123,127,"resid"],[128,130,"slope"],[131,133,"route"],[135,140,"lights"],[142,145,"tow"],[146,150,"school"],[152,159,"people"],[162,164,"cargo"],[165,171,"bike"]];
+  const hit = R.find(([a,b]) => n >= a && n <= b);
+  return hit ? hit[2] : null;
+}

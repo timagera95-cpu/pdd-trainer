@@ -51,6 +51,8 @@ h1{font-size:22px;margin:4px 0 14px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9}
 .modal .box{background:var(--bg);color:var(--text);border-radius:16px;padding:20px;width:85%;max-width:360px;text-align:center}
 .wrong{font-size:14px;margin-bottom:8px}
+.deep{line-height:1.45}.deep .row2{margin-bottom:6px}.deep .sec{margin-top:10px;padding-top:10px;border-top:1px solid rgba(127,127,127,.25)}
+.deep .lbl{font-weight:700}.deep .yours{color:var(--bad)}.deep .right{color:var(--ok)}
 </style>
 </head>
 <body>
@@ -121,7 +123,7 @@ const T = {
      shareText:(c,n)=>`Я сдал пробный экзамен ПДД: ${c} из ${n}! Попробуй и ты 👇`,
      exitExam:"Выйти из экзамена? Результат не сохранится.",mistakesHint:"Правильный ответ убирает вопрос из списка",
      review:"Разбор ошибок",right:"Правильно",
-     ruleLabel:"ПДД РУз",explainAd:"Объяснение — за просмотр рекламы",adFail:"Реклама закрыта раньше времени — досмотрите до конца, чтобы открыть объяснение"},
+     ruleLabel:"ПДД РУз",yourAns:"Ваш ответ",rightAns:"Правильно",whyLbl:"Почему",remember:"Как запомнить",explainAd:"Объяснение — за просмотр рекламы",adFail:"Реклама закрыта раньше времени — досмотрите до конца, чтобы открыть объяснение"},
  uz:{title:"YHQ trenajyori",progress:"To'g'ri yechildi",exam:"Imtihon",tickets:"Tasodifiy bilet",newTicket:"Yangi bilet",mistakes:"Xatolarim",
      noMistakes:"Xatolar yo'q — a'lo! 👍",ticket:"Bilet",question:"Savol",next:"Keyingi",finish:"Yakunlash",
      passed:"Imtihondan o'tdingiz!",failed:"Imtihondan o'tmadingiz",errors:"Xatolar",timeout:"Vaqt tugadi",home:"Bosh sahifa",
@@ -132,7 +134,7 @@ const T = {
      shareText:(c,n)=>`Men YHQ bo'yicha sinov imtihonidan o'tdim: ${c}/${n}! Sen ham sinab ko'r 👇`,
      exitExam:"Imtihondan chiqasizmi? Natija saqlanmaydi.",mistakesHint:"To'g'ri javob savolni ro'yxatdan olib tashlaydi",
      review:"Xatolar tahlili",right:"To'g'ri javob",
-     ruleLabel:"O'zR YHQ",explainAd:"Izoh — reklama ko'rish evaziga",adFail:"Reklama oxirigacha ko'rilmadi — izohni ochish uchun oxirigacha ko'ring"}
+     ruleLabel:"O'zR YHQ",yourAns:"Sizning javobingiz",rightAns:"To'g'ri javob",whyLbl:"Nega",remember:"Qanday eslab qolish",explainAd:"Izoh — reklama ko'rish evaziga",adFail:"Reklama oxirigacha ko'rilmadi — izohni ochish uchun oxirigacha ko'ring"}
 };
 
 // ================== СОХРАНЕНИЕ ==================
@@ -279,6 +281,7 @@ function answer(i){
   const s = session;
   if (s.res.length > s.idx) return;
   const q = QUESTIONS[idx(s.ids[s.idx])], ok = i === q.c;
+  s.lastChoice = i;
   s.res.push(ok); if (!ok) s.errors++;
   setStatus(q.id, ok ? "1" : "2");
   S.recent = [q.id, ...(S.recent || []).filter(x => x !== q.id)].slice(0, 80);   // недавно показанные — реже в новых билетах
@@ -300,6 +303,16 @@ function answer(i){
   html += `<button class="btn" onclick="${end ? "finish()" : "nextQ()"}">${end ? t().finish : t().next}</button>`;
   document.getElementById("after").innerHTML = html;
 }
+// Глубокое объяснение (за рекламу): ваш ответ, правильный ответ, разбор, «как запомнить», пункт ПДД
+function deepExplain(q, chosen){
+  const L = S.lang, k = (typeof tipKey === "function") ? tipKey(q) : null, tip = k && TIPS[k] ? TIPS[k][L] : "";
+  let h = `<div class="explain deep">`;
+  if (chosen >= 0 && chosen !== q.c) h += `<div class="row2">❌ <span class="lbl">${t().yourAns}:</span> <span class="yours">${q.o[L][chosen]}</span></div>`;
+  h += `<div class="row2">✅ <span class="lbl">${t().rightAns}:</span> <span class="right">${q.o[L][q.c]}</span></div>`;
+  h += `<div class="sec">💡 <span class="lbl">${t().whyLbl}:</span> ${q.e[L]}</div>`;
+  if (tip) h += `<div class="sec">🧠 <span class="lbl">${t().remember}:</span> ${tip}</div>`;
+  return h + ruleRef(q) + `</div>`;
+}
 function unlockExplain(id){
   const btn = document.getElementById("expBtn");
   if (!btn || btn.disabled) return;
@@ -307,7 +320,7 @@ function unlockExplain(id){
   Ads.rewarded().then(ok => {
     const box = document.getElementById("expBox");
     if (!box) return;
-    if (ok) { const q = QUESTIONS[idx(id)]; box.innerHTML = `<div class="explain">💡 ${q.e[S.lang]}${ruleRef(q)}</div>`; }
+    if (ok) box.innerHTML = deepExplain(QUESTIONS[idx(id)], session ? session.lastChoice : -1);
     else { btn.disabled = false; box.insertAdjacentHTML("beforeend", `<div class="hint center" style="margin:-4px 0 10px">${t().adFail}</div>`); }
   });
 }
@@ -325,7 +338,7 @@ function finish(){
   stopTimer();
   const s = session; if (!s) return;
   const n = s.ids.length, correct = s.res.filter(Boolean).length;
-  if (s.mode === "exam") return examResult(s, n, correct);
+  if (s.mode === "exam") { setBack(null); return Ads.interstitial().then(() => examResult(s, n, correct)); }  // реклама перед результатом экзамена — и при сдаче, и при провале
   setBack(home);
   // межстраничная реклама после билета — естественная пауза
   Ads.interstitial().then(() => {
