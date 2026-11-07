@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Тренажёр ПДД</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Cpolygon points=%2250,6 94,50 50,94 6,50%22 fill=%22%23fff%22 stroke=%22%23222%22 stroke-width=%225%22/%3E%3Cpolygon points=%2250,22 78,50 50,78 22,50%22 fill=%22%23f9c22e%22/%3E%3C/svg%3E">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="questions.js"></script>
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 <style>
 :root{
@@ -61,10 +61,13 @@ h1{font-size:22px;margin:4px 0 14px}
 .kbtn{background:#ff9800!important;color:#fff!important}.stars{font-size:52px;text-align:center;letter-spacing:6px;margin:10px 0}
 .deep{line-height:1.45}.deep .row2{margin-bottom:6px}.deep .sec{margin-top:10px;padding-top:10px;border-top:1px solid rgba(127,127,127,.25)}
 .deep .lbl{font-weight:700}.deep .yours{color:var(--bad)}.deep .right{color:var(--ok)}
+.disc{margin-top:18px;font-size:12.5px;color:var(--hint);text-align:center;line-height:1.35}
+.loading{display:flex;align-items:center;justify-content:center;height:70vh;font-size:40px}
 </style>
 </head>
 <body>
-<div id="app"></div>
+<div id="app"><div class="loading">🚗</div></div>
+<script src="questions.js"></script>
 <script>
 // ================== НАСТРОЙКИ ==================
 const CONFIG = {
@@ -75,7 +78,8 @@ const CONFIG = {
   botLink: "https://t.me/YHQbilet_bot/test", // ссылка на ваш мини-апп (для кнопки «Поделиться»)
   adsDemo: false,       // true — заглушка вместо рекламы; false — реальная реклама Adsgram
   adsgramInterstitialId: "int-58096", // blockId межстраничной рекламы
-  adsgramRewardedId: "58095"      // blockId rewarded-рекламы
+  adsgramRewardedId: "58095",     // blockId rewarded-рекламы
+  statsUrl: "https://pdd-stats.pdd-stats.workers.dev/e" // анонимная статистика (бот Timur AI → /stats)
 };
 
 const tg = window.Telegram ? window.Telegram.WebApp : null;
@@ -122,7 +126,7 @@ function makeTicket(n){
 // ================== ТЕКСТЫ ИНТЕРФЕЙСА ==================
 const T = {
  ru:{title:"Тренажёр ПДД",progress:"Решено верно",exam:"Экзамен",tickets:"Случайный билет",newTicket:"Новый билет",
-     kids:"Для детей",kidsSub:"Правила для пешеходов и юных велосипедистов",kNext:"Дальше",kDone:"Готово!",kAgain:"Ещё раз",kGood:["Молодец! 🎉","Правильно! 👏","Отлично! ⭐","Так держать! 💪"],kBad:"Почти! Запомни:",kRes:(c,n)=>`Правильно ${c} из ${n}`,kMsg:["Нужно ещё потренироваться — попробуй снова!","Хорошо! Ещё немного — и будешь знать всё!","Ты знаешь правила дороги на отлично!"],kTip:"совет безопасности",kOk:"Правильно",kWrong:"Неправильно",kErrAd:"Узнать свои ошибки — за просмотр рекламы",kErrTitle:"Твои ошибки",invTitle:"Вдвоём готовиться проще",invSub:"Позовите друга, который тоже учится на права: решайте билеты вместе и сдайте с первого раза",invBtn:"Пригласить друга",
+     kids:"Для детей",kidsSub:"Правила для пешеходов и юных велосипедистов",kNext:"Дальше",kDone:"Готово!",kAgain:"Ещё раз",kGood:["Молодец! 🎉","Правильно! 👏","Отлично! ⭐","Так держать! 💪"],kBad:"Почти! Запомни:",kRes:(c,n)=>`Правильно ${c} из ${n}`,kMsg:["Нужно ещё потренироваться — попробуй снова!","Хорошо! Ещё немного — и будешь знать всё!","Ты знаешь правила дороги на отлично!"],kTip:"совет безопасности",kOk:"Правильно",kWrong:"Неправильно",kErrAd:"Посмотреть свои ошибки",kErrTitle:"Твои ошибки",invTitle:"Вдвоём готовиться проще",invSub:"Позовите друга, который тоже учится на права: решайте билеты вместе и сдайте с первого раза",invBtn:"Пригласить друга",
      invText:"Я готовлюсь к экзамену на права в бесплатном тренажёре ПДД прямо в Telegram 🚗 Билеты, перекрёстки, экзамен с таймером. Давай вместе — так быстрее сдадим! 👇",mistakes:"Мои ошибки",
      noMistakes:"Ошибок нет — отлично! 👍",ticket:"Билет",question:"Вопрос",next:"Далее",finish:"Завершить",
      passed:"Экзамен сдан!",failed:"Экзамен не сдан",errors:"Ошибок",timeout:"Время вышло",home:"На главную",
@@ -133,9 +137,9 @@ const T = {
      shareText:(c,n)=>`Я сдал пробный экзамен ПДД: ${c} из ${n}! Попробуй и ты 👇`,
      exitExam:"Выйти из экзамена? Результат не сохранится.",mistakesHint:"Правильный ответ убирает вопрос из списка",
      review:"Разбор ошибок",right:"Правильно",
-     ruleLabel:"ПДД РУз",yourAns:"Ваш ответ",rightAns:"Правильно",whyLbl:"Почему",remember:"Как запомнить",explainAd:"Объяснение — за просмотр рекламы",adFail:"Реклама закрыта раньше времени — досмотрите до конца, чтобы открыть объяснение"},
+     ruleLabel:"ПДД РУз",yourAns:"Ваш ответ",rightAns:"Правильно",whyLbl:"Почему",remember:"Как запомнить",explainAd:"Как запомнить — за просмотр рекламы",disclaimer:"Тренажёр для подготовки. Не официальные экзаменационные билеты.",adFail:"Реклама закрыта раньше времени — досмотрите до конца, чтобы открыть объяснение"},
  uz:{title:"YHQ trenajyori",progress:"To'g'ri yechildi",exam:"Imtihon",tickets:"Tasodifiy bilet",newTicket:"Yangi bilet",
-     kids:"Bolalar uchun",kidsSub:"Piyodalar va yosh velosipedchilar uchun qoidalar",kNext:"Keyingi",kDone:"Tayyor!",kAgain:"Yana bir bor",kGood:["Barakalla! 🎉","To'g'ri! 👏","A'lo! ⭐","Shunday davom et! 💪"],kBad:"Deyarli! Eslab qol:",kRes:(c,n)=>`${n} tadan ${c} tasi to'g'ri`,kMsg:["Yana mashq qilish kerak — qaytadan urinib ko'r!","Yaxshi! Yana ozgina — va hammasini bilasan!","Sen yo'l qoidalarini a'lo bilasan!"],kTip:"xavfsizlik maslahati",kOk:"To'g'ri",kWrong:"Noto'g'ri",kErrAd:"Xatolaringni bilish — reklama ko'rish evaziga",kErrTitle:"Sening xatolaring",invTitle:"Ikkalamiz tayyorlansak osonroq",invSub:"Haydovchilikka o'qiyotgan do'stingizni chaqiring: biletlarni birga yeching va birinchi urinishda topshiring",invBtn:"Do'stni taklif qilish",
+     kids:"Bolalar uchun",kidsSub:"Piyodalar va yosh velosipedchilar uchun qoidalar",kNext:"Keyingi",kDone:"Tayyor!",kAgain:"Yana bir bor",kGood:["Barakalla! 🎉","To'g'ri! 👏","A'lo! ⭐","Shunday davom et! 💪"],kBad:"Deyarli! Eslab qol:",kRes:(c,n)=>`${n} tadan ${c} tasi to'g'ri`,kMsg:["Yana mashq qilish kerak — qaytadan urinib ko'r!","Yaxshi! Yana ozgina — va hammasini bilasan!","Sen yo'l qoidalarini a'lo bilasan!"],kTip:"xavfsizlik maslahati",kOk:"To'g'ri",kWrong:"Noto'g'ri",kErrAd:"Xatolaringni ko'rish",kErrTitle:"Sening xatolaring",invTitle:"Ikkalamiz tayyorlansak osonroq",invSub:"Haydovchilikka o'qiyotgan do'stingizni chaqiring: biletlarni birga yeching va birinchi urinishda topshiring",invBtn:"Do'stni taklif qilish",
      invText:"Men haydovchilik imtihoniga Telegram'dagi bepul YHQ trenajyorida tayyorlanyapman 🚗 Biletlar, chorrahalar, taymerli imtihon. Keling, birga o'qiymiz — tezroq topshiramiz! 👇",mistakes:"Xatolarim",
      noMistakes:"Xatolar yo'q — a'lo! 👍",ticket:"Bilet",question:"Savol",next:"Keyingi",finish:"Yakunlash",
      passed:"Imtihondan o'tdingiz!",failed:"Imtihondan o'tmadingiz",errors:"Xatolar",timeout:"Vaqt tugadi",home:"Bosh sahifa",
@@ -146,7 +150,7 @@ const T = {
      shareText:(c,n)=>`Men YHQ bo'yicha sinov imtihonidan o'tdim: ${c}/${n}! Sen ham sinab ko'r 👇`,
      exitExam:"Imtihondan chiqasizmi? Natija saqlanmaydi.",mistakesHint:"To'g'ri javob savolni ro'yxatdan olib tashlaydi",
      review:"Xatolar tahlili",right:"To'g'ri javob",
-     ruleLabel:"O'zR YHQ",yourAns:"Sizning javobingiz",rightAns:"To'g'ri javob",whyLbl:"Nega",remember:"Qanday eslab qolish",explainAd:"Izoh — reklama ko'rish evaziga",adFail:"Reklama oxirigacha ko'rilmadi — izohni ochish uchun oxirigacha ko'ring"}
+     ruleLabel:"O'zR YHQ",yourAns:"Sizning javobingiz",rightAns:"To'g'ri javob",whyLbl:"Nega",remember:"Qanday eslab qolish",explainAd:"Qanday eslab qolish — reklama evaziga",disclaimer:"Tayyorgarlik uchun trenajyor. Rasmiy imtihon biletlari emas.",adFail:"Reklama oxirigacha ko'rilmadi — izohni ochish uchun oxirigacha ko'ring"}
 };
 
 // ================== СОХРАНЕНИЕ ==================
@@ -154,7 +158,7 @@ const T = {
 // Компактно: 800 вопросов = 800 символов (лимит CloudStorage — 4096 на ключ).
 const KEY = "pdd_v2";
 const userLang = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.language_code : "";
-let S = { lang: userLang === "uz" ? "uz" : "ru", st: "", day: "", examsToday: 0, recent: [] };
+let S = { lang: userLang === "ru" ? "ru" : "uz", st: "", day: "", examsToday: 0, recent: [] };
 const hasCloud = () => inTg && tg.CloudStorage && tg.isVersionAtLeast && tg.isVersionAtLeast("6.9");
 function localGet(){ try { return localStorage.getItem(KEY); } catch(e){ return null; } }
 function save(){
@@ -175,10 +179,34 @@ function setStatus(id, v){
 const count = v => QUESTIONS.filter(q => status(q.id) === v).length;
 const today = () => { const d = new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); };
 
+// ================== СТАТИСТИКА ==================
+// Анонимно: вместо Telegram ID отправляется его хеш. Никаких имён и текстов.
+const startParam = inTg && tg.initDataUnsafe ? (tg.initDataUnsafe.start_param || "") : "";
+let UID = null; const _q = [];
+function _flush(){
+  if (!UID || !CONFIG.statsUrl || !_q.length) return;
+  const body = JSON.stringify(_q.splice(0).map(x => Object.assign({ u: UID, l: S.lang }, x)));
+  try {
+    if (!(navigator.sendBeacon && navigator.sendBeacon(CONFIG.statsUrl, new Blob([body], { type: "text/plain" }))))
+      fetch(CONFIG.statsUrl, { method: "POST", body, keepalive: true, headers: { "Content-Type": "text/plain" } }).catch(() => {});
+  } catch(e){}
+}
+function track(e, m){ _q.push(m == null ? { e } : { e, m: String(m) }); _flush(); }
+(async () => {
+  try {
+    const raw = inTg && tg.initDataUnsafe && tg.initDataUnsafe.user ? "tg" + tg.initDataUnsafe.user.id
+      : (localStorage.getItem("pdd_uid") || (() => { const r = "w" + Math.random().toString(36).slice(2); localStorage.setItem("pdd_uid", r); return r; })());
+    const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("pdd:" + raw));
+    UID = [...new Uint8Array(h)].slice(0, 8).map(b => b.toString(16).padStart(2, "0")).join("");
+  } catch(e){ UID = "anon" + Math.random().toString(36).slice(2, 10); }
+  _flush();
+})();
+const myRef = () => UID ? "r_" + UID.slice(0, 10) : "";
+
 // ================== РЕКЛАМА ==================
 const Ads = {
-  interstitial(){ return this._show(CONFIG.adsgramInterstitialId, false); },
-  rewarded(){ return this._show(CONFIG.adsgramRewardedId, true); },
+  interstitial(){ track("ad_interstitial"); return this._show(CONFIG.adsgramInterstitialId, false); },
+  rewarded(){ return this._show(CONFIG.adsgramRewardedId, true).then(ok => { track(ok ? "ad_rewarded" : "ad_rewarded_skip"); return ok; }); },
   _ctrl: {},
   _show(blockId, rewarded){
     if (!CONFIG.adsDemo) {
@@ -217,7 +245,7 @@ function haptic(ok){ if (inTg && tg.isVersionAtLeast("6.1")) tg.HapticFeedback.n
 function stopTimer(){ if (timerId) { clearInterval(timerId); timerId = null; } }
 function shuffle(a){ a = a.slice(); for (let i = a.length-1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; }
 
-function setLang(l){ S.lang = l; save(); home(); }
+function setLang(l){ S.lang = l; document.documentElement.lang = l; save(); track("lang", l); home(); }
 
 function home(){
   stopTimer(); session = null; setBack(null);
@@ -236,7 +264,8 @@ function home(){
       <div class="inv-t">${t().invTitle}</div>
       <div class="inv-s">${t().invSub}</div>
       <button class="btn inv-b" onclick="inviteFriend()">👋 ${t().invBtn}</button>
-    </div>`;
+    </div>
+    <div class="disc">${t().disclaimer}</div>`;
 }
 
 // ================== ДЕТСКИЙ РЕЖИМ ==================
@@ -245,7 +274,7 @@ function home(){
 let kid = null;
 function kidsStart(){
   if (typeof KIDS === "undefined") return;
-  kid = { ids: shuffle(KIDS.map((_, i) => i)).slice(0, 10), i: 0, ok: 0, ans: [], done: false };
+  kid = { ids: shuffle(KIDS.map((_, i) => i)).slice(0, 10), i: 0, ok: 0, ans: [], done: false }; track("kids_start");
   setBack(home); kidsRender();
 }
 function kidsRender(){
@@ -264,8 +293,8 @@ function kidsAnswer(o){
   const q = KIDS[kid.ids[kid.i]];
   kid.ans[kid.i] = o; if (o === q.c) kid.ok++;
   haptic(true);
-  if (kid.i < kid.ids.length - 1) { kid.i++; kid.done = false; setTimeout(kidsRender, 150); }
-  else { setBack(null); app.innerHTML = `<div class="kid center" style="padding-top:40vh">⏳</div>`; Ads.interstitial().then(kidsFinish); }
+  if (kid.i < kid.ids.length - 1) { kid.i++; setTimeout(() => { kid.done = false; kidsRender(); }, 150); }   // done снимается после показа следующего вопроса — защита от двойного нажатия
+  else { track("kids_done", kid.ok); kidsFinish(); }   // в детском режиме рекламы нет
 }
 function kidsSrc(q, L){
   return q.rule.startsWith("совет") ? t().kTip
@@ -280,16 +309,15 @@ function kidsFinish(){
     <h1 class="center">${t().kRes(c, n)}</h1>
     <div class="card center" style="font-size:18px;font-weight:700">✅ ${t().kOk}: ${c} &nbsp;&nbsp; ❌ ${t().kWrong}: ${w}</div>
     <div class="card center" style="font-size:16px">${t().kMsg[st - 1]}</div>
-    <div id="kerr">${w ? `<button class="btn kbtn" id="kerrBtn" onclick="kidsErrors()">🎬 ${t().kErrAd}</button>` : ""}</div>
+    <div id="kerr">${w ? `<button class="btn kbtn" id="kerrBtn" onclick="kidsErrors()">🔍 ${t().kErrAd}</button>` : ""}</div>
     <button class="btn ${w ? "sec" : "kbtn"}" onclick="kidsStart()">🔁 ${t().kAgain}</button>
     <button class="btn sec" onclick="home()">${t().home}</button></div>`;
   window.scrollTo(0, 0);
 }
 function kidsErrors(){
   const btn = document.getElementById("kerrBtn"); if (!btn) return; btn.disabled = true;
-  Ads.rewarded().then(ok => {
+  {
     const box = document.getElementById("kerr"); if (!box) return;
-    if (!ok) { btn.disabled = false; box.insertAdjacentHTML("beforeend", `<div class="hint center" style="margin:-4px 0 10px">${t().adFail}</div>`); return; }
     const L = S.lang;
     box.innerHTML = `<h2 style="margin:14px 0 8px">${t().kErrTitle}</h2>` + kid.ids.map((id, k) => {
       const q = KIDS[id], a = kid.ans[k]; if (a === q.c) return "";
@@ -300,7 +328,7 @@ function kidsErrors(){
         <div style="color:var(--ok);margin:4px 0 8px">✅ ${t().rightAns}: ${q.o[L][q.c]}</div>
         <div class="kexp">💡 ${q.e[L]}<div class="hint" style="margin-top:6px">📖 ${kidsSrc(q, L)}</div></div></div>`;
     }).join("");
-  });
+  }
 }
 
 // ================== СЕССИИ ==================
@@ -323,7 +351,7 @@ function startMistakes(){
 function startExam(){
   if (S.day !== today()) { S.day = today(); S.examsToday = 0; }
   const begin = () => {
-    S.examsToday++; save();
+    S.examsToday++; save(); track("exam_start");
     startQuiz("exam", makeTicket(CONFIG.examCount), t().exam);
   };
   if (S.examsToday < CONFIG.freeExamsPerDay) return begin();
@@ -380,12 +408,14 @@ function answer(i){
   const verdict = `<b>${ok ? "✅ " + t().correct : "❌ " + t().wrong}.</b>`;
   // Экзамен — без объяснений (как на реальном экзамене).
   // Билеты/ошибки: верный ответ — объяснение бесплатно, неверный — объяснение за rewarded-рекламу.
-  let html = `<div class="explain">${verdict}${s.mode !== "exam" && ok ? " " + q.e[S.lang] + ruleRef(q) : ""}</div>`;
-  if (s.mode !== "exam" && !ok)
+  // Билеты/ошибки: «почему» — бесплатно всегда; «как запомнить» после ошибки — за rewarded-рекламу.
+  let html = `<div class="explain">${verdict}${s.mode !== "exam" ? " " + q.e[S.lang] + ruleRef(q) : ""}</div>`;
+  if (s.mode !== "exam" && !ok && hasTip(q))
     html += `<div id="expBox"><button class="btn sec" id="expBtn" onclick="unlockExplain(${q.id})">🎬 ${t().explainAd}</button></div>`;
   html += `<button class="btn" onclick="${end ? "finish()" : "nextQ()"}">${end ? t().finish : t().next}</button>`;
   document.getElementById("after").innerHTML = html;
 }
+const hasTip = q => { const k = (typeof tipKey === "function") ? tipKey(q) : null; return !!(k && typeof TIPS !== "undefined" && TIPS[k]); };
 // Глубокое объяснение (за рекламу): ваш ответ, правильный ответ, разбор, «как запомнить», пункт ПДД
 function deepExplain(q, chosen){
   const L = S.lang, k = (typeof tipKey === "function") ? tipKey(q) : null, tip = k && TIPS[k] ? TIPS[k][L] : "";
@@ -403,7 +433,7 @@ function unlockExplain(id){
   Ads.rewarded().then(ok => {
     const box = document.getElementById("expBox");
     if (!box) return;
-    if (ok) box.innerHTML = deepExplain(QUESTIONS[idx(id)], session ? session.lastChoice : -1);
+    if (ok) { box.innerHTML = deepExplain(QUESTIONS[idx(id)], session ? session.lastChoice : -1); track("explain_deep"); }
     else { btn.disabled = false; box.insertAdjacentHTML("beforeend", `<div class="hint center" style="margin:-4px 0 10px">${t().adFail}</div>`); }
   });
 }
@@ -421,8 +451,8 @@ function finish(){
   stopTimer();
   const s = session; if (!s) return;
   const n = s.ids.length, correct = s.res.filter(Boolean).length;
-  if (s.mode === "exam") { setBack(null); return Ads.interstitial().then(() => examResult(s, n, correct)); }  // реклама перед результатом экзамена — и при сдаче, и при провале
-  setBack(home);
+  if (s.mode === "exam") { const passed = !s.timeout && s.res.length === n && s.errors <= CONFIG.maxErrors; track(passed ? "exam_pass" : "exam_fail", s.errors); setBack(null); return Ads.interstitial().then(() => examResult(s, n, correct)); }  // реклама перед результатом экзамена — и при сдаче, и при провале
+  setBack(home); track(s.mode === "ticket" ? "ticket_done" : "mistakes_done", correct + "/" + n);
   // межстраничная реклама после билета — естественная пауза
   Ads.interstitial().then(() => {
     app.innerHTML = `${backBtn()}<h1>${t().result}</h1>
@@ -454,15 +484,18 @@ function reviewHtml(s){
     `</div>`;
 }
 // Пригласить друга — без бонусов: просто открывает выбор чата с готовым приглашением
+const refLink = () => CONFIG.botLink + (myRef() ? (CONFIG.botLink.includes("?") ? "&" : "?") + "startapp=" + myRef() : "");
 function inviteFriend(){
-  const url = "https://t.me/share/url?url=" + encodeURIComponent(CONFIG.botLink) + "&text=" + encodeURIComponent(t().invText);
+  track("invite");
+  const url = "https://t.me/share/url?url=" + encodeURIComponent(refLink()) + "&text=" + encodeURIComponent(t().invText);
   if (inTg) tg.openTelegramLink(url); else window.open(url, "_blank");
 }
 function shareResult(c, n){
-  const url = "https://t.me/share/url?url=" + encodeURIComponent(CONFIG.botLink) + "&text=" + encodeURIComponent(t().shareText(c, n));
+  track("share");
+  const url = "https://t.me/share/url?url=" + encodeURIComponent(refLink()) + "&text=" + encodeURIComponent(t().shareText(c, n));
   if (inTg) tg.openTelegramLink(url); else window.open(url, "_blank");
 }
 
-load(home);
+load(() => { document.documentElement.lang = S.lang; _q.unshift({ e: "open", r: startParam }); _flush(); home(); });
 </script>
 </body>
