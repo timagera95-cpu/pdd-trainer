@@ -63,11 +63,19 @@ h1{font-size:22px;margin:4px 0 14px}
 .deep .lbl{font-weight:700}.deep .yours{color:var(--bad)}.deep .right{color:var(--ok)}
 .disc{margin-top:18px;font-size:12.5px;color:var(--hint);text-align:center;line-height:1.35}
 .loading{display:flex;align-items:center;justify-content:center;height:70vh;font-size:40px}
+.guide details{background:var(--card);border-radius:12px;margin-bottom:8px;padding:0 14px}
+.guide summary{font-weight:700;padding:13px 0;cursor:pointer;list-style:none}.guide summary::-webkit-details-marker{display:none}
+.guide details[open] summary{border-bottom:1px solid rgba(127,127,127,.2);margin-bottom:8px}
+.guide ul,.guide ol{padding-left:20px;margin:6px 0 12px}.guide li{margin-bottom:6px;line-height:1.4}.guide p{margin:6px 0 10px;line-height:1.45}
+.gsamp{border:1.5px dashed var(--btn);border-radius:10px;padding:10px 12px;margin:8px 0 12px;line-height:1.5}
+.gsamp label{display:flex;gap:8px;align-items:flex-start;margin-top:6px;font-size:15px}.gsamp input{margin-top:3px;width:18px;height:18px;flex:0 0 18px}
+.gsrc{font-size:14px}.btn.guide-b{background:var(--card);color:var(--text);border:2px solid var(--btn)}
 </style>
 </head>
 <body>
 <div id="app"><div class="loading">🚗</div></div>
 <script src="questions.js"></script>
+<script src="guide.js"></script>
 <script>
 // ================== НАСТРОЙКИ ==================
 const CONFIG = {
@@ -258,6 +266,7 @@ function home(){
     <div class="hint center" style="margin:-4px 0 14px">${t().examInfo(Math.min(CONFIG.examCount,n), CONFIG.examMinutes, CONFIG.maxErrors)}</div>
     <button class="btn sec" onclick="startTicket()">📋 ${t().tickets}</button>
     <button class="btn sec" onclick="startMistakes()">❗ ${t().mistakes}${mist ? ` (${mist})` : ""}</button>
+    ${typeof GUIDE !== "undefined" ? `<button class="btn guide-b" onclick="guideOpen()">📄 ${GUIDE[S.lang].btn}</button>` : ""}
     <button class="btn kids-b" onclick="kidsStart()">🧒 ${t().kids}<span>${t().kidsSub}</span></button>
     <div class="invite">
       <div class="inv-ico">🚗🚙</div>
@@ -266,6 +275,17 @@ function home(){
       <button class="btn inv-b" onclick="inviteFriend()">👋 ${t().invBtn}</button>
     </div>
     <div class="disc">${t().disclaimer}</div>`;
+}
+
+// ================== СПРАВОЧНИК: КАК ПОЛУЧИТЬ ПРАВА ==================
+function guideOpen(){
+  const g = GUIDE[S.lang];
+  setBack(home); track("guide");
+  app.innerHTML = `${backBtn()}<div class="guide"><h1>📄 ${g.title}</h1>
+    <div class="hint" style="margin:-6px 0 12px">${g.updated}</div>
+    ${g.sections.map((x, i) => `<details${i === 1 ? " open" : ""}><summary>${x.h}</summary>${x.b}</details>`).join("")}
+    <button class="btn sec" style="margin-top:6px" onclick="home()">${t().home}</button></div>`;
+  window.scrollTo(0, 0);
 }
 
 // ================== ДЕТСКИЙ РЕЖИМ ==================
