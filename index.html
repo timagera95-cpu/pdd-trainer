@@ -145,7 +145,7 @@ const T = {
      shareText:(c,n)=>`Я сдал пробный экзамен ПДД: ${c} из ${n}! Попробуй и ты 👇`,
      exitExam:"Выйти из экзамена? Результат не сохранится.",mistakesHint:"Правильный ответ убирает вопрос из списка",
      review:"Разбор ошибок",right:"Правильно",
-     ruleLabel:"ПДД РУз",yourAns:"Ваш ответ",rightAns:"Правильно",whyLbl:"Почему",remember:"Как запомнить",explainAd:"Как запомнить — за просмотр рекламы",disclaimer:"Тренажёр для подготовки. Не официальные экзаменационные билеты.",adFail:"Реклама закрыта раньше времени — досмотрите до конца, чтобы открыть объяснение",notify:"Получать новости и напоминания"},
+     ruleLabel:"ПДД РУз",yourAns:"Ваш ответ",rightAns:"Правильно",whyLbl:"Почему",remember:"Как запомнить",explainAd:"Как запомнить — за просмотр рекламы",disclaimer:"Тренажёр для подготовки. Не официальные экзаменационные билеты.",adFail:"Реклама закрыта раньше времени — досмотрите до конца, чтобы открыть объяснение"},
  uz:{title:"YHQ trenajyori",progress:"To'g'ri yechildi",exam:"Imtihon",tickets:"Tasodifiy bilet",newTicket:"Yangi bilet",
      kids:"Bolalar uchun",kidsSub:"Piyodalar va yosh velosipedchilar uchun qoidalar",kNext:"Keyingi",kDone:"Tayyor!",kAgain:"Yana bir bor",kGood:["Barakalla! 🎉","To'g'ri! 👏","A'lo! ⭐","Shunday davom et! 💪"],kBad:"Deyarli! Eslab qol:",kRes:(c,n)=>`${n} tadan ${c} tasi to'g'ri`,kMsg:["Yana mashq qilish kerak — qaytadan urinib ko'r!","Yaxshi! Yana ozgina — va hammasini bilasan!","Sen yo'l qoidalarini a'lo bilasan!"],kTip:"xavfsizlik maslahati",kOk:"To'g'ri",kWrong:"Noto'g'ri",kErrAd:"Xatolaringni ko'rish",kErrTitle:"Sening xatolaring",invTitle:"Ikkalamiz tayyorlansak osonroq",invSub:"Haydovchilikka o'qiyotgan do'stingizni chaqiring: biletlarni birga yeching va birinchi urinishda topshiring",invBtn:"Do'stni taklif qilish",
      invText:"Men haydovchilik imtihoniga Telegram'dagi bepul YHQ trenajyorida tayyorlanyapman 🚗 Biletlar, chorrahalar, taymerli imtihon. Keling, birga o'qiymiz — tezroq topshiramiz! 👇",mistakes:"Xatolarim",
@@ -158,7 +158,7 @@ const T = {
      shareText:(c,n)=>`Men YHQ bo'yicha sinov imtihonidan o'tdim: ${c}/${n}! Sen ham sinab ko'r 👇`,
      exitExam:"Imtihondan chiqasizmi? Natija saqlanmaydi.",mistakesHint:"To'g'ri javob savolni ro'yxatdan olib tashlaydi",
      review:"Xatolar tahlili",right:"To'g'ri javob",
-     ruleLabel:"O'zR YHQ",yourAns:"Sizning javobingiz",rightAns:"To'g'ri javob",whyLbl:"Nega",remember:"Qanday eslab qolish",explainAd:"Qanday eslab qolish — reklama evaziga",disclaimer:"Tayyorgarlik uchun trenajyor. Rasmiy imtihon biletlari emas.",adFail:"Reklama oxirigacha ko'rilmadi — izohni ochish uchun oxirigacha ko'ring",notify:"Yangiliklar va eslatmalarni olish"}
+     ruleLabel:"O'zR YHQ",yourAns:"Sizning javobingiz",rightAns:"To'g'ri javob",whyLbl:"Nega",remember:"Qanday eslab qolish",explainAd:"Qanday eslab qolish — reklama evaziga",disclaimer:"Tayyorgarlik uchun trenajyor. Rasmiy imtihon biletlari emas.",adFail:"Reklama oxirigacha ko'rilmadi — izohni ochish uchun oxirigacha ko'ring"}
 };
 
 // ================== СОХРАНЕНИЕ ==================
@@ -267,7 +267,6 @@ function home(){
     <button class="btn sec" onclick="startTicket()">📋 ${t().tickets}</button>
     <button class="btn sec" onclick="startMistakes()">❗ ${t().mistakes}${mist ? ` (${mist})` : ""}</button>
     ${typeof GUIDE !== "undefined" ? `<button class="btn guide-b" onclick="guideOpen()">📄 ${GUIDE[S.lang].btn}</button>` : ""}
-    ${canNotify() && !S.sub ? `<button class="btn sec" onclick="askNotify()">🔔 ${t().notify}</button>` : ""}
     <button class="btn kids-b" onclick="kidsStart()">🧒 ${t().kids}<span>${t().kidsSub}</span></button>
     <div class="invite">
       <div class="inv-ico">🚗🚙</div>
@@ -279,13 +278,14 @@ function home(){
 }
 
 // ================== ПОДПИСКА НА РАССЫЛКУ ==================
-// Telegram спрашивает «разрешить боту писать вам?»; при согласии отправляем подписанный initData в pdd-stats /sub.
+// При каждом входе, пока не разрешил, Telegram спрашивает «разрешить боту писать вам?».
+// При согласии отправляем подписанный initData в pdd-stats /sub и больше не спрашиваем.
 const canNotify = () => inTg && tg.requestWriteAccess && tg.isVersionAtLeast && tg.isVersionAtLeast("6.9");
 function askNotify(){
   tg.requestWriteAccess(ok => {
     if (!ok) return;
     fetch(CONFIG.statsUrl.replace(/\/e$/, "/sub"), { method: "POST", body: tg.initData, headers: { "Content-Type": "text/plain" } })
-      .then(r => { if (r.ok) { S.sub = 1; save(); track("notify_on"); home(); } }).catch(() => {});
+      .then(r => { if (r.ok) { S.sub = 1; save(); track("notify_on"); } }).catch(() => {});
   });
 }
 
@@ -528,6 +528,7 @@ function shareResult(c, n){
   if (inTg) tg.openTelegramLink(url); else window.open(url, "_blank");
 }
 
-load(() => { document.documentElement.lang = S.lang; _q.unshift({ e: "open", r: startParam }); _flush(); home(); });
+load(() => { document.documentElement.lang = S.lang; _q.unshift({ e: "open", r: startParam }); _flush(); home();
+  if (canNotify() && !S.sub) askNotify(); });
 </script>
 </body>
